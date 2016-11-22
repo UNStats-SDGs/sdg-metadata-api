@@ -30,21 +30,6 @@ app.listen(port, function () {
       targets: 'target',
       indicators: 'indicator',
       series: 'series'
-    },
-    attributes: {
-      goals: {
-        title: null,
-        description: null,
-        color_info: null
-      },
-      targets: {
-        description: null,
-        goal_id: null
-      },
-      indicators: {
-        target_id: null,
-        goal_id: null
-      }
     }
   };
   

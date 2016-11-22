@@ -1,5 +1,23 @@
 // swiped the Obj -> Array from here: https://stackoverflow.com/questions/6857468/converting-a-js-object-to-an-array
 
+function getSeries(id) {
+  var seriesFile = _DEFAULTS.files['series']['series'];
+  
+  return Object.keys(seriesFile)
+    .reduce(function (acc, value) {
+      var sObj = seriesFile[value];
+      if (sObj.indicator_id === id) {
+        acc.push({
+          id: value,
+          description: sObj.description,
+          isOfficial: sObj.isOfficial,
+          show: sObj.show
+        });
+      }
+      return acc;
+    }, []);
+}
+
 exports.getAll = function (type) {
   
   var file = _DEFAULTS.files[type][type],
@@ -18,6 +36,10 @@ exports.getAll = function (type) {
         type: _DEFAULTS.model_type[type],
         attributes: obj
       };
+
+      if (type === 'indicators') {
+        item.series = getSeries(value);
+      }
 
       return item;
 
@@ -49,6 +71,10 @@ exports.getAllByIds = function (ids, type, filter) {
           type: _DEFAULTS.model_type[type],
           attributes: obj
         };
+
+        if (type === 'indicators') {
+          item.series = getSeries(id);
+        }
 
         acc.push(item);
       } else {
@@ -99,6 +125,10 @@ exports.getChildren = function (parentId, parentField, outType, filter) {
           type: _DEFAULTS.model_type[outType],
           attributes: obj
         };
+
+        if (outType === 'indicators') {
+          item.series = getSeries(id);
+        }
 
         acc.push(item);
       }
