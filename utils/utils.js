@@ -38,7 +38,7 @@ exports.getAll = function (type) {
       };
 
       if (type === 'indicators') {
-        item.series = getSeries(value);
+        item.attributes.series = getSeries(value);
       }
 
       return item;
@@ -73,7 +73,7 @@ exports.getAllByIds = function (ids, type, filter) {
         };
 
         if (type === 'indicators') {
-          item.series = getSeries(id);
+          item.attributes.series = getSeries(id);
         }
 
         acc.push(item);
@@ -127,7 +127,7 @@ exports.getChildren = function (parentId, parentField, outType, filter) {
         };
 
         if (outType === 'indicators') {
-          item.series = getSeries(id);
+          item.attributes.series = getSeries(id);
         }
 
         acc.push(item);
