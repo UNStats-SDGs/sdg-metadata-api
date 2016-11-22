@@ -7,6 +7,7 @@ router.get('/', function (req, res) {
 
 router.use('/goals', require('./goals'));
 router.use('/targets', require('./targets'));
-// router.use('/indicators', require('./indicators'));
+router.use('/indicators', require('./indicators'));
+router.use('/series', require('./series'));
 
 module.exports = router;

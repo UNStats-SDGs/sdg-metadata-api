@@ -1,47 +1,35 @@
-var fs = require('fs');
+var utils = require('../utils/utils');
 
-exports.getAllGoals = function (query, cb) {
-  var out_json = {},
-    data = [],
-    meta = {},
-    goals;
+
+exports.getAll = function (query, cb) {
+  var out_json = { data: [], meta: {} },
+    data,
+    goal;
 
   try {
-    // load up the goals
-    goals = JSON.parse( fs.readFileSync('data/goals.json') );
-
+    
     if (query.ids) {
-      var qIds = query.ids.split(',').map(function (v) { return parseInt(v); });
       
-      // swiped the Obj -> Array from here: https://stackoverflow.com/questions/6857468/converting-a-js-object-to-an-array
-      Object.keys(goals.goals).map(function (value) { 
-        if (qIds.indexOf(parseInt(value)) > -1) {
-          delete goals.goals[value].id;
-          
-          data.push({
-            id: parseInt(value),
-            type: 'goal',
-            attributes: goals.goals[value]
-          });
-        }        
-      });
+      data = utils.getAllByIds(query.ids.split(','), 'goals');
+
     } else {
-      
-      data = Object.keys(goals.goals).map(function (value) { 
-        delete goals.goals[value].id;
-        return {
-          id: parseInt(value),
-          type: 'goal',
-          attributes: goals.goals[value]
-        }; 
-      });
+           
+      data = utils.getAll('goals');
     }
 
-    out_json['data'] = data;
-    out_json['meta'] = {};    
+    out_json.data = data.data;
+
+    if (data.messages) {
+      out_json.meta.messages = data.messages;
+    }
   }
   catch (ex) {
     console.log(ex);
+    
+    if (out_json.data) {
+      delete out_json.data;
+    }
+
     out_json.errors = [];
     out_json.errors.push({
       status: '',
@@ -53,41 +41,28 @@ exports.getAllGoals = function (query, cb) {
 }
 
 exports.getById = function (query, cb) {
-  var out_json = {};
+  var out_json = { data: [], meta: {} },
+    id = query.params.id,
+    data;
 
   try {
     if (!query.params && !query.params.id) {
       throw new Error('no id specified');
     }
 
-    var id = query.params.id,
-      data = [];
+    data = utils.getAllByIds([id], 'goals');
+       
+    out_json.data = data.data;
 
-    goals = JSON.parse( fs.readFileSync('data/goals.json') );
-
-    var goal = goals.goals[id];
-    if (!goal) {
-      var msg = 'unable to find data for goal: ' + id;
-      if (parseInt(id) < 1 || parseInt(id) > 17) {
-        msg = 'please enter a goal number between 1 and 17';
-      }
-      throw new Error(msg);
+    if (data.messages) {
+      out_json.meta.messages = data.messages;
     }
-
-    delete goal.id;
-
-    data = [{
-      type: 'goal',
-      id: parseInt(id),
-      attributes: goal
-    }];
-    
-    out_json.data = data;
-    out_json.meta = {};
-
   }
   catch (ex) {
     console.log(ex);
+
+    delete out_json.data;
+
     out_json.errors = [];
     out_json.errors.push({
       status: '',
@@ -97,3 +72,123 @@ exports.getById = function (query, cb) {
 
   cb(null, out_json);
 }
+
+// exports.getTargetsByGoalId = function (query, cb) {
+//   var out_json = { data: [], meta: {} },
+//     id = query.params.id,
+//     data;
+
+//   try {
+       
+//     data = utils.getChildren(id, 'goal_id', 'targets');
+
+//     out_json.data = data.data;
+    
+//     if (data.messages) {
+//       out_json.meta.messages = data.messages;
+//     }
+//   }
+//   catch (ex) {
+//     console.log(ex);
+
+//     if (out_json.data) {
+//       delete out_json.data;
+//     }
+
+//     out_json.errors = [];
+//     out_json.errors.push({
+//       status: '',
+//       detail: ex.message
+//     });
+//   }
+
+//   cb(null, out_json);
+// }
+
+// exports.getTarget = function (query, cb) {
+//   var goal_id = query.params.id,
+//     target_id = query.params.target_id;
+
+//   if (target_id.substr(0, target_id.indexOf('.')) !== goal_id) {
+//     throw new Error('The combination of Target ' + target_id + ' and Goal ' + goal_id + ' have no Indicators');
+//   }
+
+//   utils.getAllByIds(query, cb);
+// }
+
+// exports.getIndicatorsForTarget = function (query, cb) {
+//   var out_json = { data: [], meta: {} },
+//     target_id = query.params.target_id,
+//     goal_id = query.params.id,
+//     data;
+
+//   try {
+    
+//     if (target_id.substr(0, target_id.indexOf('.')) !== goal_id) {
+//       throw new Error('The combination of Target ' + target_id + ' and Goal ' + goal_id + ' have no Indicators');
+//     }
+
+//     data = utils.getChildren(target_id, 'target_id', 'indicators');
+
+//     out_json.data = data.data;
+    
+//     if (data.messages) {
+//       out_json.meta.messages = data.messages;
+//     }
+//   }
+//   catch (ex) {
+//     console.log(ex);
+
+//     if (out_json.data) {
+//       delete out_json.data;
+//     }
+
+//     out_json.errors = [];
+//     out_json.errors.push({
+//       status: '',
+//       detail: ex.message
+//     });
+//   }
+
+//   cb(null, out_json);
+// }
+
+// exports.getIndicator = function (query, cb) {
+//   var out_json = { data: [], meta: {} },
+//     id = query.params.id,
+//     target_id = query.params.target_id,
+//     indicator_id = query.params.indicator_id,
+//     data;
+
+//   try {
+
+//     if (target_id.substr(0, target_id.lastIndexOf('.')) !== id || 
+//         indicator_id.substr(0, indicator_id.lastIndexOf('.')) !== target_id) {
+
+//       throw new Error('The combination of Target ' + target_id + ', Goal ' + id + ', and Indicator ' + indicator_id + ' are not aligned.');
+//     }
+       
+//     data = utils.getAllByIds([indicator_id], 'indicators');
+
+//     out_json.data = data.data;
+    
+//     if (data.messages) {
+//       out_json.meta.messages = data.messages;
+//     }
+//   }
+//   catch (ex) {
+//     console.log(ex);
+
+//     if (out_json.data) {
+//       delete out_json.data;
+//     }
+
+//     out_json.errors = [];
+//     out_json.errors.push({
+//       status: '',
+//       detail: ex.message
+//     });
+//   }
+
+//   cb(null, out_json);
+// }

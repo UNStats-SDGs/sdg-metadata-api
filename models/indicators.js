@@ -8,11 +8,14 @@ exports.getAll = function (query, cb) {
   try {
     
     if (query.ids) {
-      data = utils.getAllByIds(query.ids.split(','), 'targets');
-    } else if (query.params && query.params.id) {
-      data = utils.getChildren(query.params.id, 'goal_id', 'targets');
+      console.log(query.ids);
+      data = utils.getAllByIds(query.ids.split(','), 'indicators');
+    } else if (query.params) { 
+      var id = (query.params.target_id) ? query.params.target_id : query.params.id;
+      data = utils.getChildren(id, 'target_id', 'indicators');
     } else {
-      data = utils.getAll('targets');
+      console.log(query);
+      data = utils.getAll('indicators');
     }
 
     out_json.data = data.data;
@@ -40,13 +43,12 @@ exports.getAll = function (query, cb) {
 
 exports.getById = function (query, cb) {
   var out_json = { data: [], meta: {} },
-    id = (query.params.target_id) ? query.params.target_id : query.params.id ,
+    id = (query.params.indicator_id) ? query.params.indicator_id : query.params.id,
     data;
 
   try {
-    console.log(query.params);
-
-    data = utils.getAllByIds([id], 'targets');
+    
+    data = utils.getAllByIds([id], 'indicators');
     
     out_json.data = data.data;
     
@@ -70,5 +72,8 @@ exports.getById = function (query, cb) {
   }
 
   cb(null, out_json);
+}
+
+exports.getField = function (query, cb) {
 
 }
