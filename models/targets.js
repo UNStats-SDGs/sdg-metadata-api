@@ -4,7 +4,8 @@ exports.getAll = function (query, next, cb) {
   var out_json = { data: [] },
     data,
     queryParams = query.query,
-    target;
+    target,
+    messages = [];
 
   try {
     
@@ -48,7 +49,13 @@ exports.getAll = function (query, next, cb) {
       }
 
       if (includes.indexOf('indicators') > -1) {
-        var indicators = {};
+        var indicators = [],
+          msg = '';
+
+        var sources = false;
+        if (queryParams.sources && queryParams.sources === 'true') {
+          sources = true;
+        }
 
         if (queryParams.filter && queryParams.filter.id) {
 
@@ -56,21 +63,28 @@ exports.getAll = function (query, next, cb) {
 
           indicators = target_ids
             .map(function (id) {
-              return utils.getIndicatorsForTarget(id);
+              return utils.getIndicatorsForTarget(id, sources);
             })
             .reduce(function(a, b) {
               return a.concat(b);
             }, []);
 
+          msg = 'No Indicators found for Target Ids ' + target_ids;
+
         } else {
-          indicators = utils.getAllIndicators();
+          indicators = utils.getAllIndicators(sources);
+          msg = 'No Indicators found';
+        }
+
+        if (indicators.length === 0) {
+          messages.push(msg);
         }
 
         out_json.included = out_json.included.concat( indicators );
       }
     }
   
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams);
+    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
 
   }
   catch (ex) {
@@ -86,7 +100,8 @@ exports.getAllForGoal = function (query, next, cb) {
   var out_json = { data: [] },
     queryParams = query.query,
     goal_id = query.params.id,
-    data;
+    data,
+    messages = [];
 
   try {
     
@@ -104,14 +119,23 @@ exports.getAllForGoal = function (query, next, cb) {
         out_json.included = out_json.included.concat( targets );
       }
 
-      if (includes.indexOf('indicators') > -1) {       
-        var indicators = utils.getIndicatorsForGoal(goal_id);
+      if (includes.indexOf('indicators') > -1) {
+        var sources = false;
+        if (queryParams.sources && queryParams.sources === 'true') {
+          sources = true;
+        }
+
+        var indicators = utils.getIndicatorsForGoal(goal_id, sources);
+        if (indicators.length === 0) {
+          messages.push('No Indicators found for Goal ' + goal_id);
+        }
+
         out_json.included = out_json.included.concat( indicators );
       }
 
     }
 
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams);
+    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
 
   }
   catch (ex) {
@@ -127,7 +151,8 @@ exports.getById = function (query, next, cb) {
   var out_json = { data: [] },
     queryParams = query.query,
     target_id = (query.params.target_id) ? query.params.target_id : query.params.id,
-    data;
+    data,
+    messages = [];
 
   try {
 
@@ -144,17 +169,30 @@ exports.getById = function (query, next, cb) {
         var goal_id = target_id.substr(0, target_id.indexOf('.'));
 
         var goal = utils.getGoalById(goal_id);
+        if (!goal) {
+          messages.push('Unable to find Goal for Target Id ' + target_id);
+        }
 
         out_json.included = out_json.included.concat( [goal] );
       }
 
       if (includes.indexOf('indicators') > -1) {
-        var indicators = utils.getIndicatorsForTarget(target_id);
+        var sources = false;
+        if (queryParams.sources && queryParams.sources === 'true') {
+          sources = true;
+        }
+
+        var indicators = utils.getIndicatorsForTarget(target_id, sources);
+
+        if (indicators.length === 0) {
+          messages.push('No Indicators found for Target Id ' + target_id);
+        }
+
         out_json.included = out_json.included.concat( indicators );
       }
     }
 
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams);
+    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, (messages.length > 0) ? messages : null);
   }
   catch (ex) {
     console.log(ex);

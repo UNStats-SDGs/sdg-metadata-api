@@ -4,18 +4,24 @@ exports.getAll = function (query, next, cb) {
   var out_json = { data: [] },
     data,
     queryParams = query.query,
-    target;
+    target,
+    messages = [];
 
   try {
     
+    var sources = false;
+    if (queryParams && (queryParams.sources === 'true')) {
+      sources = true;
+    }
+
     if (queryParams && queryParams.filter && queryParams.filter.id) {
       var ids = queryParams.filter.id.split(',');
 
       data = ids.map(function(id) {
-        return utils.getIndicatorById(id);
+        return utils.getIndicatorById(id, sources);
       });
     } else {
-      data = utils.getAllIndicators();
+      data = utils.getAllIndicators(sources);
     }
 
     out_json.data = data;
@@ -57,12 +63,17 @@ exports.getAll = function (query, next, cb) {
           return utils.getTargetById(id);
         });
 
+        if (targets.length === 0) {
+          messages.push('No Targets found for ids ' + target_uniques);
+        }
+
         out_json.included = out_json.included.concat( targets );
       }
 
     }
 
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams);
+    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
+
   }
   catch (ex) {
     console.log(ex);
@@ -106,12 +117,17 @@ exports.getAllForTarget = function (query, next, cb) {
 
       if (includes.indexOf('targets') > -1) {
         var target = utils.getTargetById(target_id);
+
+        if (!target) {
+          messages.push('Unable to find Target id ' + target_id);
+        }
+
         out_json.included = out_json.included.concat( [target] );
       }
 
     }
 
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams);
+    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
 
   }
   catch (ex) {
@@ -129,7 +145,8 @@ exports.getById = function (query, next, cb) {
     goal_id = query.params.id,
     target_id = query.params.target_id,
     indicator_id = query.params.indicator_id,
-    data;
+    data,
+    messages = [];
 
   try {
     
@@ -149,10 +166,17 @@ exports.getById = function (query, next, cb) {
 
       if (includes.indexOf('targets') > -1) {
         var target = utils.getTargetById(target_id);
+
+        if (!target) {
+          messages.push('Unable to find Target id ' + target_id);
+        }
+        
         out_json.included = out_json.included.concat( [target] );
       }
 
     }
+
+    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
 
   }
   catch (ex) {

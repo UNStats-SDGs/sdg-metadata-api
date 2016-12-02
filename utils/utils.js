@@ -167,7 +167,7 @@ exports.getAllGoals = function () {
 
       } else {
         throw {
-          status: 500,
+          status: 404,
           detail: 'error attempting to get Goal with id: ' + id,
           title: 'Error getting all Goals'
         }
@@ -204,7 +204,7 @@ exports.getGoalById = function (id) {
     }
 
     throw {
-      status: 500,
+      status: 404,
       detail: msg,
       title: 'Error getting Goal by id'
     }
@@ -235,7 +235,7 @@ exports.getAllTargets = function () {
         acc.push(item);
       } else {
         throw {
-          status: 500,
+          status: 404,
           detail: 'error attempting to get Target with id: ' + id,
           title: 'Error getting all Targets'
         }
@@ -267,7 +267,7 @@ exports.getTargetById = function (id) {
 
   } else {
     throw {
-      status: 500,
+      status: 404,
       detail: 'Unable to find target: ' + id,
       title: 'Error getting Target by id'
     }
@@ -304,7 +304,7 @@ exports.getTargetsForGoal = function (goal_id) {
         
       } else {
         throw {
-          status: 500,
+          status: 404,
           detail: 'Unable to find Target for Goal ' + goal_id,
           title: 'Error getting Targets for Goal'
         }
@@ -317,7 +317,7 @@ exports.getTargetsForGoal = function (goal_id) {
 }
 
 /** Indicators **/
-exports.getAllIndicators = function () {
+exports.getAllIndicators = function (sources) {
   var file = _DEFAULTS.files['indicators']['indicators'],
     obj,
     item,
@@ -331,16 +331,25 @@ exports.getAllIndicators = function () {
       if (obj) {
         item = {
           id: id,
-          type: 'indicator',
-          attributes: obj
+          type: 'indicator'
         };
+
+        if (sources) {
+          item.attributes = obj;
+        } else {
+          item.attributes = {
+            description: obj.description,
+            goal_id: obj.goal_id,
+            target_id: obj.target_id
+          }
+        }
 
         item.attributes.series = getSeries(id);
 
         acc.push(item);
       } else {
         throw {
-          status: 500,
+          status: 404,
           detail: 'error attempting to get Indicator with id: ' + id,
           title: 'Error getting all Indicators'
         }
@@ -353,7 +362,7 @@ exports.getAllIndicators = function () {
   return data;
 }
 
-exports.getIndicatorById = function (id) {
+exports.getIndicatorById = function (id, sources) {
   var file = _DEFAULTS.files['indicators']['indicators'],
     obj,
     item;
@@ -366,13 +375,24 @@ exports.getIndicatorById = function (id) {
 
     item = {
       id: id,
-      type: 'indicator',
-      attributes: obj
+      type: 'indicator'
     };
+
+    if (sources) {
+      item.attributes = obj;
+    } else {
+      item.attributes = {
+        description: obj.description,
+        goal_id: obj.goal_id,
+        target_id: obj.target_id
+      }
+    }
+
+    item.attributes.series = getSeries(id);
 
   } else {
     throw {
-      status: 500,
+      status: 404,
       detail: 'Unable to find indicator: ' + id,
       title: 'Error getting Indicator by Id'
     }
@@ -381,7 +401,7 @@ exports.getIndicatorById = function (id) {
   return item;
 }
 
-exports.getIndicatorsForGoal = function (goal_id) {
+exports.getIndicatorsForGoal = function (goal_id, sources) {
   var file = _DEFAULTS.files['indicators']['indicators'],
     obj,
     item,
@@ -399,9 +419,18 @@ exports.getIndicatorsForGoal = function (goal_id) {
 
           item = {
             id: id,
-            type: 'indicator',
-            attributes: obj
+            type: 'indicator'
           };
+
+          if (sources) {
+            item.attributes = obj;
+          } else {
+            item.attributes = {
+              description: obj.description,
+              goal_id: obj.goal_id,
+              target_id: obj.target_id
+            }
+          }
 
           item.attributes.series = getSeries(id);
 
@@ -411,7 +440,7 @@ exports.getIndicatorsForGoal = function (goal_id) {
         
       } else {
         throw {
-          status: 500,
+          status: 404,
           detail: 'Unable to find Indicator for Goal ' + goal_id,
           title: 'Error getting Indicators for Goal'
         }
@@ -423,7 +452,7 @@ exports.getIndicatorsForGoal = function (goal_id) {
   return data;
 }
 
-exports.getIndicatorsForTarget = function (target_id) {
+exports.getIndicatorsForTarget = function (target_id, sources) {
   var file = _DEFAULTS.files['indicators']['indicators'],
     obj,
     item,
@@ -441,9 +470,18 @@ exports.getIndicatorsForTarget = function (target_id) {
 
           item = {
             id: id,
-            type: 'indicator',
-            attributes: obj
+            type: 'indicator'
           };
+
+          if (sources) {
+            item.attributes = obj;
+          } else {
+            item.attributes = {
+              description: obj.description,
+              goal_id: obj.goal_id,
+              target_id: obj.target_id
+            }
+          }
 
           item.attributes.series = getSeries(id);
 
@@ -453,7 +491,7 @@ exports.getIndicatorsForTarget = function (target_id) {
         
       } else {
         throw {
-          status: 500,
+          status: 404,
           detail: 'Unable to find Indicators for Target ' + goal_id,
           title: 'Error getting Indicators for Target'
         }
@@ -465,7 +503,7 @@ exports.getIndicatorsForTarget = function (target_id) {
   return data;
 }
 
-exports.buildMetaObject = function (query, len, queryParams) {
+exports.buildMetaObject = function (query, len, queryParams, messages) {
   var meta = {
     stats: {
       count: len
@@ -477,6 +515,11 @@ exports.buildMetaObject = function (query, len, queryParams) {
 
   if (queryParams) {
     meta.queryParameters = queryParams;
+  }
+
+  if (messages) {
+    meta.messages = [];
+    meta.messages = messages;
   }
 
   return meta;
