@@ -4,50 +4,38 @@ var express = require('express'),
   Targets = require('../models/targets'),
   Indicators = require('../models/indicators');
 
-router.get('/', function (req, res) {
-  Goals.getAll(req.query, function (err, response) {
+router.get('/', function (req, res, next) {
+  Goals.getAll(req, next, function (err, response) {
     res.json( response );
   });
 });
 
-router.get('/:id', function (req, res) {
-  Goals.getById(req, function (err, response) {
+router.get('/:id', function (req, res, next) {
+  Goals.getById(req, next, function (err, response) {
     res.json( response );
   });
 });
 
-router.get('/:id/targets', function (req, res) {
-  // Goals.getTargetsByGoalId(req, function (err, response) {
-  //   res.json( response );
-  // });
-  Targets.getAll(req, function (err, response) {
+router.get('/:id/targets', function (req, res, next) {
+  Targets.getAllForGoal(req, next, function (err, response) {
     res.json( response );
   });
 });
 
-router.get('/:id/targets/:target_id', function (req, res) {
-  // Goals.getTarget(req, function (err, response) {
-  //   res.json( response );
-  // });
-  Targets.getById(req, function (err, response) {
+router.get('/:id/targets/:target_id', function (req, res, next) {
+  Targets.getById(req, next, function (err, response) {
     res.json( response );
   });
 });
 
-router.get('/:id/targets/:target_id/indicators', function (req, res) {
-  // Goals.getIndicatorsForTarget(req, function (err, response) {
-  //   res.json( response );
-  // });
-  Indicators.getAll(req, function (err, response) {
+router.get('/:id/targets/:target_id/indicators', function (req, res, next) {
+  Indicators.getAllForTarget(req, next, function (err, response) {
     res.json( response );
   });
 });
 
-router.get('/:id/targets/:target_id/indicators/:indicator_id', function (req, res) {
-  // Goals.getIndicator(req, function (err, response) {
-  //   res.json( response );
-  // });
-  Indicators.getById(req, function (err, response) {
+router.get('/:id/targets/:target_id/indicators/:indicator_id', function (req, res, next) {
+  Indicators.getById(req, next, function (err, response) {
     res.json( response );
   });
 });

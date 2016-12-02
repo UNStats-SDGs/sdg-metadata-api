@@ -1,8 +1,42 @@
 var express = require('express'),
   router = express.Router();
 
-router.get('/', function (req, res) {
-  res.json( { 'meta' : 'info about the api goes here' } );
+router.get('/', function (req, res, next) {
+  try {
+    
+    var root = process.env.API_ROOT;
+
+    res.json({ 
+      goals: {
+        collection: root + '/goals?{include,filter}'
+      },
+      targets: {
+        collection: root + '/targets?{include,filter}'
+      },
+      indicators: {
+        collection: root + '/indicators?{include,filter}'
+      },
+      series: {
+        collection: root + '/series?{include,filter}'
+      },
+      params: {
+        include: 'related resources to include in search results',
+        filter: 'a filter applied to search results'
+      }
+    });
+
+  }
+  catch (ex) {
+
+    var err = { 
+      title: 'error getting API root description', 
+      status: 500, 
+      detail: 'error getting API root description' 
+    };
+
+    next(err);
+  }
+
 });
 
 router.use('/goals', require('./goals'));

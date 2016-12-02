@@ -1,12 +1,25 @@
+require('dotenv').config();
+
 var express = require('express'),
   app = express(),
   fs = require('fs'),
   cors = require('cors'),
   port = process.env.PORT || 3000;
 
-app.use(cors());
+if (!process.env.API_ROOT) {
+  process.env.API_ROOT = 'http://localhost:3000';
+}
+
+app.use( cors() );
 
 app.use( require('./controllers') );
+
+app.use(function (err, req, res, next) {
+  console.log(err);
+  
+  res.json({ errors: [ err ] });
+
+});
 
 app.listen(port, function () {
   

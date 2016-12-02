@@ -18,6 +18,7 @@
   "homepage": "https://github.com/UNStats-SDGs/GlobalSdgIndicatorsAPI#readme",
   "dependencies": {
     "cors": "^2.8.1",
+    "dotenv": "^2.0.0",
     "express": "^4.14.0"
   }
 }
