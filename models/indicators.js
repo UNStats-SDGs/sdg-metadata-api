@@ -53,18 +53,27 @@ exports.getAll = function (query, next, cb) {
       }
 
       if (includes.indexOf('targets') > -1) {
-        var indicator_ids = queryParams.filter.id.split(',');
+        if (queryParams.filter && queryParams.filter.id) {
+          var indicator_ids = queryParams.filter.id.split(',');
 
-        var target_ids = indicator_ids.map(function (id) { return id.substr(0, id.lastIndexOf('.')); });
+          var target_ids = indicator_ids.map(function (id) { return id.substr(0, id.lastIndexOf('.')); });
 
-        var target_uniques = [...new Set(target_ids)];
+          var target_uniques = [...new Set(target_ids)];
 
-        targets = target_uniques.map(function (id) {
-          return utils.getTargetById(id);
-        });
+          targets = target_uniques.map(function (id) {
+            return utils.getTargetById(id);
+          });
 
-        if (targets.length === 0) {
-          messages.push('No Targets found for ids ' + target_uniques);
+          if (targets.length === 0) {
+            messages.push('No Targets found for ids ' + target_uniques);
+          }
+
+        } else {
+          targets = utils.getAllTargets();
+
+          if (targets.length === 0) {
+            messages.push('Unable to find Targets.');
+          }
         }
 
         out_json.included = out_json.included.concat( targets );
@@ -170,7 +179,7 @@ exports.getById = function (query, next, cb) {
         if (!target) {
           messages.push('Unable to find Target id ' + target_id);
         }
-        
+
         out_json.included = out_json.included.concat( [target] );
       }
 
