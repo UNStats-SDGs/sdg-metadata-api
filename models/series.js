@@ -191,7 +191,7 @@ exports.getAllForIndicator = function (query, next, cb) {
 exports.getById = function (query, next, cb) {
   var out_json = { data: [] },
     queryParams = query.query,
-    series_id = query.params.id,
+    series_id = (query.params.series_id) ? query.params.series_id : query.params.id,
     data,
     messages = [];
 

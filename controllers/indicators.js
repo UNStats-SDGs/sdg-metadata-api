@@ -21,4 +21,10 @@ router.get('/:id/series', function (req, res, next) {
   });
 });
 
+router.get('/:id/series/:series_id', function (req, res, next) {
+  Series.getById(req, next, function (err, response) {
+    res.json( response );
+  });
+});
+
 module.exports = router;
