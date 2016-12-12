@@ -56,6 +56,8 @@ For Example:
 - Indicators
   - [https://unstats-sdg-api.herokuapp.com/indicators?include=goals,targets](https://unstats-sdg-api.herokuapp.com/indicators?include=goals,targets)
   - Note: this request will bring **all** of the available SDG Metadata for Goals, Targets & Indicators.
+- Series
+  - [https://unstats-sdg-api.herokuapp.com/goals/1?include=series](https://unstats-sdg-api.herokuapp.com/goals/1?include=series)
 
 ## Filtering
 You can apply the `filter` query parameter to filter the search results. View the JSON API Spec for [filtering](http://jsonapi.org/format/#fetching-filtering).
