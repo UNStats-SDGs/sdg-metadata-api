@@ -5,18 +5,22 @@ exports.getAll = function (query, next, cb) {
     data,
     queryParams = query.query,
     target,
+    sources = false,
     messages = [];
 
   try {
+
+    if (queryParams && (queryParams.sources === 'true')) {
+      sources = true;
+    }
     
     if (queryParams && queryParams.filter && queryParams.filter.id) {
       var ids = queryParams.filter.id.split(',');
 
-      data = ids.map(function(id) {
-        return utils.getTargetById(id);
-      });
+      data = utils.getAllByIds(ids, 'targets');
+
     } else {
-      data = utils.getAllTargets();
+      data = utils.getAll('targets');
     }
     
     out_json.data = data;
@@ -37,9 +41,7 @@ exports.getAll = function (query, next, cb) {
           
           var goal_uniques = [...new Set(goal_ids)];
 
-          goals = goal_uniques.map(function(id) {
-            return utils.getGoalById(id);
-          });
+          goals = utils.getAllByIds(goal_uniques, 'goals');
 
         } else {
           goals = utils.getAllGoals();
@@ -49,8 +51,7 @@ exports.getAll = function (query, next, cb) {
       }
 
       if (includes.indexOf('indicators') > -1) {
-        var indicators = [],
-          msg = '';
+        var indicators = [];
 
         var sources = false;
         if (queryParams.sources && queryParams.sources === 'true') {
@@ -63,24 +64,39 @@ exports.getAll = function (query, next, cb) {
 
           indicators = target_ids
             .map(function (id) {
-              return utils.getIndicatorsForTarget(id, sources);
+              return utils.getChildren(id, 'target_id', 'indicators', sources);
             })
             .reduce(function(a, b) {
               return a.concat(b);
             }, []);
 
-          msg = 'No Indicators found for Target Ids ' + target_ids;
-
         } else {
-          indicators = utils.getAllIndicators(sources);
-          msg = 'No Indicators found';
-        }
-
-        if (indicators.length === 0) {
-          messages.push(msg);
+          indicators = utils.getAll('indicators', sources);
         }
 
         out_json.included = out_json.included.concat( indicators );
+      }
+
+      if (includes.indexOf('series') > -1) {
+        var series = [];
+
+        if (queryParams.filter && queryParams.filter.id) {
+
+          var target_ids = queryParams.filter.id.split(',');
+
+          series = target_ids
+            .map(function (id) {
+              return utils.getChildren(id, 'target_id', 'series', sources);
+            })
+            .reduce(function(a, b) {
+              return a.concat(b);
+            }, []);
+
+        } else {
+          series = utils.getAll('series');
+        }
+
+        out_json.included = out_json.included.concat( series );
       }
     }
   
@@ -105,7 +121,7 @@ exports.getAllForGoal = function (query, next, cb) {
 
   try {
     
-    data = utils.getTargetsForGoal(goal_id);
+    data = utils.getChildren(goal_id, 'goal_id', 'targets');
     
     out_json.data = data;
 
@@ -115,7 +131,8 @@ exports.getAllForGoal = function (query, next, cb) {
       out_json.included = [];
 
       if (includes.indexOf('goals') > -1) {
-        var targets = utils.getGoalById(goal_id);       
+        var targets = utils.getAllByIds([goal_id], 'goals');
+
         out_json.included = out_json.included.concat( targets );
       }
 
@@ -125,12 +142,16 @@ exports.getAllForGoal = function (query, next, cb) {
           sources = true;
         }
 
-        var indicators = utils.getIndicatorsForGoal(goal_id, sources);
-        if (indicators.length === 0) {
-          messages.push('No Indicators found for Goal ' + goal_id);
-        }
+        var indicators = utils.getChildren(goal_id, 'goal_id', 'indicators', sources);
 
         out_json.included = out_json.included.concat( indicators );
+      }
+
+      if (includes.indexOf('series') > -1) {
+
+        var series = utils.getChildren(goal_id, 'goal_id', 'series');
+
+        out_json.included = out_json.included.concat( series );
       }
 
     }
@@ -156,9 +177,9 @@ exports.getById = function (query, next, cb) {
 
   try {
 
-    data = utils.getTargetById(target_id);
+    data = utils.getAllByIds([target_id], 'targets');
     
-    out_json.data = data;
+    out_json.data = data[0];
 
     if (queryParams && queryParams.include) {
       var includes = queryParams.include.split(',');
@@ -168,12 +189,9 @@ exports.getById = function (query, next, cb) {
       if (includes.indexOf('goals') > -1) {
         var goal_id = target_id.substr(0, target_id.indexOf('.'));
 
-        var goal = utils.getGoalById(goal_id);
-        if (!goal) {
-          messages.push('Unable to find Goal for Target Id ' + target_id);
-        }
+        var goal = utils.getAllByIds([goal_id], 'goals');
 
-        out_json.included = out_json.included.concat( [goal] );
+        out_json.included = out_json.included.concat( goal );
       }
 
       if (includes.indexOf('indicators') > -1) {
@@ -182,17 +200,19 @@ exports.getById = function (query, next, cb) {
           sources = true;
         }
 
-        var indicators = utils.getIndicatorsForTarget(target_id, sources);
-
-        if (indicators.length === 0) {
-          messages.push('No Indicators found for Target Id ' + target_id);
-        }
-
+        var indicators = utils.getChildren(target_id, 'target_id', 'indicators', sources);
+        
         out_json.included = out_json.included.concat( indicators );
+      }
+
+      if (includes.indexOf('series') > -1) {
+        var series = utils.getChildren(target_id, 'target_id', 'series', sources);
+        
+        out_json.included = out_json.included.concat( series );
       }
     }
 
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, (messages.length > 0) ? messages : null);
+    out_json.meta = utils.buildMetaObject(query, 1, queryParams, (messages.length > 0) ? messages : null);
   }
   catch (ex) {
     console.log(ex);

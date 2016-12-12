@@ -8,16 +8,20 @@ router.get('/', function (req, res, next) {
 
     res.json({ 
       goals: {
-        collection: root + '/goals?{include,filter}'
+        collection: root + '/goals?{include,filter}',
+        object: root + '/goals/{:id}?{include}'
       },
       targets: {
-        collection: root + '/targets?{include,filter}'
+        collection: root + '/targets?{include,filter}',
+        object: root + '/targets/{:id}?{include}'
       },
       indicators: {
-        collection: root + '/indicators?{include,filter}'
+        collection: root + '/indicators?{include,filter}',
+        object: root + '/indicators/{:id}?{include}'
       },
       series: {
-        collection: root + '/series?{include,filter}'
+        collection: root + '/series?{include,filter}',
+        object: root + '/series/{:id}?{include}'
       },
       params: {
         include: 'related resources to include in search results',

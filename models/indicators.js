@@ -5,11 +5,11 @@ exports.getAll = function (query, next, cb) {
     data,
     queryParams = query.query,
     target,
+    sources = false,
     messages = [];
 
   try {
     
-    var sources = false;
     if (queryParams && (queryParams.sources === 'true')) {
       sources = true;
     }
@@ -17,11 +17,9 @@ exports.getAll = function (query, next, cb) {
     if (queryParams && queryParams.filter && queryParams.filter.id) {
       var ids = queryParams.filter.id.split(',');
 
-      data = ids.map(function(id) {
-        return utils.getIndicatorById(id, sources);
-      });
+      data = utils.getAllByIds(ids, 'indicators', sources);
     } else {
-      data = utils.getAllIndicators(sources);
+      data = utils.getAll('indicators', sources);
     }
 
     out_json.data = data;
@@ -41,9 +39,7 @@ exports.getAll = function (query, next, cb) {
 
           var goal_uniques = [...new Set(goal_ids)];
 
-          goals = goal_uniques.map(function(id) {
-            return utils.getGoalById(id);
-          });
+          goals = utils.getAllByIds(goal_uniques, 'goals');
 
         } else {
           goals = utils.getAllGoals();
@@ -53,6 +49,8 @@ exports.getAll = function (query, next, cb) {
       }
 
       if (includes.indexOf('targets') > -1) {
+        var targets = [];
+
         if (queryParams.filter && queryParams.filter.id) {
           var indicator_ids = queryParams.filter.id.split(',');
 
@@ -60,23 +58,34 @@ exports.getAll = function (query, next, cb) {
 
           var target_uniques = [...new Set(target_ids)];
 
-          targets = target_uniques.map(function (id) {
-            return utils.getTargetById(id);
-          });
-
-          if (targets.length === 0) {
-            messages.push('No Targets found for ids ' + target_uniques);
-          }
+          targets = utils.getAllByIds(target_uniques, 'targets');
 
         } else {
-          targets = utils.getAllTargets();
-
-          if (targets.length === 0) {
-            messages.push('Unable to find Targets.');
-          }
+          targets = utils.getAll('targets');
         }
 
         out_json.included = out_json.included.concat( targets );
+      }
+
+      if (includes.indexOf('series') > -1) {
+        var series = [];
+
+        if (queryParams.filter && queryParams.filter.id) {
+          var indicator_ids = queryParams.filter.id.split(',');
+
+          series = indicator_ids
+            .map(function (id) { 
+              return utils.getChildren(id, 'indicator_id', 'series');
+            })
+            .reduce(function(a, b) {
+              return a.concat(b);
+            });
+          
+        } else {
+          series = utils.getAll('series');
+        }
+
+        out_json.included = out_json.included.concat( series );
       }
 
     }
@@ -98,18 +107,21 @@ exports.getAllForTarget = function (query, next, cb) {
     queryParams = query.query,
     goal_id = query.params.id,
     target_id = query.params.target_id,
-    data;
+    data,
+    messages = [];
 
   try {
+    var sources = false;
+    if (queryParams && (queryParams.sources === 'true')) {
+      sources = true;
+    }
 
     if (queryParams && queryParams.filter && queryParams.filter.id) {
       var ids = queryParams.filter.id.split(',');
 
-      data = ids.map(function(id) {
-        return utils.getIndicatorById(id);
-      });
+      data = utils.getAllByIds(ids, 'indicators', sources);
     } else {
-      data = utils.getIndicatorsForTarget(target_id);
+      data = utils.getChildren(target_id, 'target_id', 'indicators', sources);
     }
     
     out_json.data = data;
@@ -120,18 +132,21 @@ exports.getAllForTarget = function (query, next, cb) {
       out_json.included = [];
 
       if (includes.indexOf('goals') > -1) {
-        var goals = utils.getGoalById(goal_id);       
-        out_json.included = out_json.included.concat( [goals] );
+        var goals = utils.getAllByIds([goal_id], 'goals');
+
+        out_json.included = out_json.included.concat( goals );
       }
 
       if (includes.indexOf('targets') > -1) {
-        var target = utils.getTargetById(target_id);
+        var targets = utils.getAllByIds([target_id], 'targets');
 
-        if (!target) {
-          messages.push('Unable to find Target id ' + target_id);
-        }
+        out_json.included = out_json.included.concat( targets );
+      }
 
-        out_json.included = out_json.included.concat( [target] );
+      if (includes.indexOf('series') > -1) {
+        var series = utils.getChildren(target_id, 'target_id', 'series');
+
+        out_json.included = out_json.included.concat( series );
       }
 
     }
@@ -151,41 +166,51 @@ exports.getAllForTarget = function (query, next, cb) {
 exports.getById = function (query, next, cb) {
   var out_json = { data: [] },
     queryParams = query.query,
-    goal_id = query.params.id,
-    target_id = query.params.target_id,
-    indicator_id = query.params.indicator_id,
+    indicator_id = (query.params.indicator_id) ? query.params.indicator_id : query.params.id,
     data,
+    sources = false,
     messages = [];
 
   try {
-    
-    data = utils.getIndicatorById(indicator_id);
-    
-    out_json.data = [data];
 
-    if (query.query && query.query.include) {
-      var includes = query.query.include.split(',');
+    if (queryParams && (queryParams.sources === 'true')) {
+      sources = true;
+    }
+
+    data = utils.getAllByIds([indicator_id], 'indicators', sources);
+    
+    out_json.data = data[0];
+
+    if (queryParams && queryParams.include) {
+      var includes = queryParams.include.split(',');
       
       out_json.included = [];
 
       if (includes.indexOf('goals') > -1) {
-        var goal = utils.getGoalById(goal_id);
-        out_json.included = out_json.included.concat( [goal] );
+        var goal_id = indicator_id.substr(0, indicator_id.indexOf('.'));
+        
+        var goals = utils.getAllByIds([goal_id], 'goals');
+
+        out_json.included = out_json.included.concat( goals );
       }
 
       if (includes.indexOf('targets') > -1) {
-        var target = utils.getTargetById(target_id);
+        var target_id = indicator_id.substr(0, indicator_id.lastIndexOf('.'));
 
-        if (!target) {
-          messages.push('Unable to find Target id ' + target_id);
-        }
+        var targets = utils.getAllByIds([target_id], 'targets');
 
-        out_json.included = out_json.included.concat( [target] );
+        out_json.included = out_json.included.concat( targets );
+      }
+
+      if (includes.indexOf('series') > -1) {        
+        var series = utils.getChildren(indicator_id, 'indicator_id', 'series');
+
+        out_json.included = out_json.included.concat( series );
       }
 
     }
 
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
+    out_json.meta = utils.buildMetaObject(query, 1, queryParams, messages.length > 0 ? messages : null);
 
   }
   catch (ex) {
@@ -195,11 +220,4 @@ exports.getById = function (query, next, cb) {
   }
 
   cb(null, out_json);
-}
-
-exports.getField = function () {
-  throw {
-    title: 'not implemented',
-    status: 501
-  }
 }

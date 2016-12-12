@@ -18,18 +18,17 @@ app.use(function (err, req, res, next) {
   console.log(err);
   
   res.json({ errors: [ err ] });
-
 });
 
 app.listen(port, function () {
   
-  _GOALS = JSON.parse( fs.readFileSync('data/goals.json') );
+  _GOALS = JSON.parse( fs.readFileSync('data/goals/goals.json') );
 
-  _TARGETS = JSON.parse( fs.readFileSync('data/targets.json') );
+  _TARGETS = JSON.parse( fs.readFileSync('data/targets/targets.json') );
 
-  _INDICATORS = JSON.parse( fs.readFileSync('data/indicators.json') );
+  _INDICATORS = JSON.parse( fs.readFileSync('data/indicators/indicators.json') );
 
-  _SERIES = JSON.parse( fs.readFileSync('data/series.json') );
+  _SERIES = JSON.parse( fs.readFileSync('data/series/series.json') );
 
   _DEFAULTS = {
     files: {
