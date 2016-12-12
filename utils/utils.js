@@ -18,13 +18,11 @@ function getSeries(id) {
     }, []);
 }
 
-exports.getAll = function (type) {
-  
+exports.getAll = function (type, sources) {  
   var file = _DEFAULTS.files[type][type],
     obj,
     item,
-    data,
-    retObj = { data: {} };
+    data;
 
   data = Object.keys(file)
     .map(function (value) { 
@@ -33,29 +31,35 @@ exports.getAll = function (type) {
 
       item = {
         id: value,
-        type: _DEFAULTS.model_type[type],
-        attributes: obj
+        type: _DEFAULTS.model_type[type]
       };
 
       if (type === 'indicators') {
-        item.attributes.series = getSeries(value);
-      }
+        if (sources) {
+          item.attributes = obj;
+        } else {
+          item.attributes = {
+            goal_id: obj.goal_id,
+            target_id: obj.target_id,
+            description: obj.description
+          }
+        }
+      } else {
+        item.attributes = obj;
+      } 
 
       return item;
 
     });
 
-  retObj.data = data;
-
-  return retObj;
+  return data;
 }
 
-exports.getAllByIds = function (ids, type, filter) {
+exports.getAllByIds = function (ids, type, sources) {
   var file = _DEFAULTS.files[type][type],
     obj,
     item,
-    data,
-    retObj = { data: {} };
+    data;
 
   data = ids
     .reduce(function (acc, id) {
@@ -68,30 +72,32 @@ exports.getAllByIds = function (ids, type, filter) {
 
         item = {
           id: id,
-          type: _DEFAULTS.model_type[type],
-          attributes: obj
+          type: _DEFAULTS.model_type[type]
         };
 
         if (type === 'indicators') {
-          item.attributes.series = getSeries(id);
+          if (sources) {
+            item.attributes = obj;
+          } else {
+            item.attributes = {
+              goal_id: obj.goal_id,
+              target_id: obj.target_id,
+              description: obj.description
+            }
+          }
+        } else {
+          item.attributes = obj;
         }
 
         acc.push(item);
       } else {
-        if (!retObj.messages) {
-          retObj.messages = [];
-        }
+        
+        console.log(id);
 
-        if (type === 'goals') {
-          var msg = 'unable to find goal: ' + id;
-          if (parseInt(id) < 1 || parseInt(id) > 17) {
-            msg += '. please enter a goal number between 1 and 17';
-          }
-          retObj.messages.push(msg);
-        } else if (type === 'targets') {
-          retObj.messages.push('unable to find target: ' + id);
-        } else if (type === 'indicators') {
-          retObj.messages.push('unable to find indicator: ' + id);
+        throw {
+          title: 'Resource not found',
+          status: 404,
+          detail: 'Unable to find ' + _DEFAULTS.model_type[type] + ' with id of ' + id
         }
       } 
       
@@ -99,17 +105,14 @@ exports.getAllByIds = function (ids, type, filter) {
 
     },[]); 
 
-    retObj.data = data;
-
-    return retObj;
+    return data;
 }
 
-exports.getChildren = function (parentId, parentField, outType, filter) {
+exports.getChildren = function (parentId, parentField, outType, sources) {
   var file = _DEFAULTS.files[outType][outType],
     obj,
     item,
-    data,
-    retObj = { data: {} };
+    data;
 
   data = Object.keys(file)
     .reduce(function (acc, id) { 
@@ -122,379 +125,24 @@ exports.getChildren = function (parentId, parentField, outType, filter) {
 
         item = {
           id: id,
-          type: _DEFAULTS.model_type[outType],
-          attributes: obj
+          type: _DEFAULTS.model_type[outType]
         };
-
+        
         if (outType === 'indicators') {
-          item.attributes.series = getSeries(id);
-        }
-
-        acc.push(item);
-      }
-      return acc;
-
-    }, []);
-
-  retObj.data = data;
-
-  return retObj;
-}
-
-
-/** ---  **/
-
-/** Goals **/
-exports.getAllGoals = function () {
-  var file = _DEFAULTS.files['goals']['goals'],
-    obj,
-    item,
-    data;
-
-  data = Object.keys(file)
-    .reduce(function (acc, id) { 
-    
-      obj = file[id];
-
-      if (obj) {
-        item = {
-          id: id,
-          type: 'goal',
-          attributes: obj
-        };
-
-        acc.push(item);
-
-      } else {
-        throw {
-          status: 404,
-          detail: 'error attempting to get Goal with id: ' + id,
-          title: 'Error getting all Goals'
-        }
-      }
-
-      return acc;
-    }, []);
-
-  return data;
-}
-
-exports.getGoalById = function (id) {
-  var file = _DEFAULTS.files['goals']['goals'],
-    obj,
-    item;
-    
-  obj = file[id];
-    
-  if (obj) {
-    
-    delete obj.id;
-
-    item = {
-      id: id,
-      type: 'goal',
-      attributes: obj
-    };
-
-  } else {
-    var msg = 'Unable to find goal: ' + id;
-
-    if (parseInt(id) < 1 || parseInt(id) > 17) {
-      msg += '. Only values between 1 and 17 are supported.';
-    }
-
-    throw {
-      status: 404,
-      detail: msg,
-      title: 'Error getting Goal by id'
-    }
-  }
-
-  return item;
-}
-
-/** Targets **/
-exports.getAllTargets = function () {
-  var file = _DEFAULTS.files['targets']['targets'],
-    obj,
-    item,
-    data;
-
-  data = Object.keys(file)
-    .reduce(function (acc, id) { 
-    
-      obj = file[id];
-
-      if (obj) {
-        item = {
-          id: id,
-          type: 'target',
-          attributes: obj
-        };
-
-        acc.push(item);
-      } else {
-        throw {
-          status: 404,
-          detail: 'error attempting to get Target with id: ' + id,
-          title: 'Error getting all Targets'
-        }
-      }
-
-      return acc;
-
-    }, []);
-
-  return data;
-}
-
-exports.getTargetById = function (id) {
-  var file = _DEFAULTS.files['targets']['targets'],
-    obj,
-    item;
-      
-  obj = file[id];
-    
-  if (obj) {
-    
-    delete obj.id;
-
-    item = {
-      id: id,
-      type: 'target',
-      attributes: obj
-    };
-
-  } else {
-    throw {
-      status: 404,
-      detail: 'Unable to find target: ' + id,
-      title: 'Error getting Target by id'
-    }
-  }
-
-  return item;
-}
-
-exports.getTargetsForGoal = function (goal_id) {
-  var file = _DEFAULTS.files['targets']['targets'],
-    obj,
-    item,
-    data;
-
-  data = Object.keys(file)
-    .reduce(function (acc, id) { 
-      
-      obj = file[id];
-
-      if (obj) {
-
-        if (goal_id === obj['goal_id']) {
-          delete obj.id;
-
-          item = {
-            id: id,
-            type: 'target',
-            attributes: obj
-          };
-
-          acc.push(item);
-
-        }
-        
-      } else {
-        throw {
-          status: 404,
-          detail: 'Unable to find Target for Goal ' + goal_id,
-          title: 'Error getting Targets for Goal'
-        }
-      }
-      return acc;
-
-    }, []);
-
-  return data;
-}
-
-/** Indicators **/
-exports.getAllIndicators = function (sources) {
-  var file = _DEFAULTS.files['indicators']['indicators'],
-    obj,
-    item,
-    data;
-
-  data = Object.keys(file)
-    .reduce(function (acc, id) { 
-    
-      obj = file[id];
-
-      if (obj) {
-        item = {
-          id: id,
-          type: 'indicator'
-        };
-
-        if (sources) {
-          item.attributes = obj;
+          if (sources) {
+            item.attributes = obj;
+          } else {
+            item.attributes = {
+              goal_id: obj.goal_id,
+              target_id: obj.target_id,
+              description: obj.description
+            }
+          }
         } else {
-          item.attributes = {
-            description: obj.description,
-            goal_id: obj.goal_id,
-            target_id: obj.target_id
-          }
+          item.attributes = obj;
         }
-
-        item.attributes.series = getSeries(id);
 
         acc.push(item);
-      } else {
-        throw {
-          status: 404,
-          detail: 'error attempting to get Indicator with id: ' + id,
-          title: 'Error getting all Indicators'
-        }
-      }
-      
-      return acc;
-
-    }, []);
-
-  return data;
-}
-
-exports.getIndicatorById = function (id, sources) {
-  var file = _DEFAULTS.files['indicators']['indicators'],
-    obj,
-    item;
-      
-  obj = file[id];
-    
-  if (obj) {
-    
-    delete obj.id;
-
-    item = {
-      id: id,
-      type: 'indicator'
-    };
-
-    if (sources) {
-      item.attributes = obj;
-    } else {
-      item.attributes = {
-        description: obj.description,
-        goal_id: obj.goal_id,
-        target_id: obj.target_id
-      }
-    }
-
-    item.attributes.series = getSeries(id);
-
-  } else {
-    throw {
-      status: 404,
-      detail: 'Unable to find indicator: ' + id,
-      title: 'Error getting Indicator by Id'
-    }
-  }
-
-  return item;
-}
-
-exports.getIndicatorsForGoal = function (goal_id, sources) {
-  var file = _DEFAULTS.files['indicators']['indicators'],
-    obj,
-    item,
-    data;
-
-  data = Object.keys(file)
-    .reduce(function (acc, id) { 
-      
-      obj = file[id];
-
-      if (obj) {
-
-        if (goal_id === obj['goal_id']) {
-          delete obj.id;
-
-          item = {
-            id: id,
-            type: 'indicator'
-          };
-
-          if (sources) {
-            item.attributes = obj;
-          } else {
-            item.attributes = {
-              description: obj.description,
-              goal_id: obj.goal_id,
-              target_id: obj.target_id
-            }
-          }
-
-          item.attributes.series = getSeries(id);
-
-          acc.push(item);
-
-        }
-        
-      } else {
-        throw {
-          status: 404,
-          detail: 'Unable to find Indicator for Goal ' + goal_id,
-          title: 'Error getting Indicators for Goal'
-        }
-      }
-      return acc;
-
-    }, []);
-
-  return data;
-}
-
-exports.getIndicatorsForTarget = function (target_id, sources) {
-  var file = _DEFAULTS.files['indicators']['indicators'],
-    obj,
-    item,
-    data;
-
-  data = Object.keys(file)
-    .reduce(function (acc, id) { 
-      
-      obj = file[id];
-
-      if (obj) {
-
-        if (target_id === obj['target_id']) {
-          delete obj.id;
-
-          item = {
-            id: id,
-            type: 'indicator'
-          };
-
-          if (sources) {
-            item.attributes = obj;
-          } else {
-            item.attributes = {
-              description: obj.description,
-              goal_id: obj.goal_id,
-              target_id: obj.target_id
-            }
-          }
-
-          item.attributes.series = getSeries(id);
-
-          acc.push(item);
-
-        }
-        
-      } else {
-        throw {
-          status: 404,
-          detail: 'Unable to find Indicators for Target ' + goal_id,
-          title: 'Error getting Indicators for Target'
-        }
       }
       return acc;
 
