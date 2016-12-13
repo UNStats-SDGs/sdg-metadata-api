@@ -35,7 +35,9 @@ app.listen(port, function () {
       goals: _GOALS,
       targets: _TARGETS,
       indicators: _INDICATORS,
-      series: _SERIES
+      series: _SERIES,
+      series_data_path: 'data/series/REFAREAS-',
+      geometry_path: 'data/geometry'
     },
     model_type: {
       goals: 'goal',

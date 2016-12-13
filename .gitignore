@@ -1,4 +1,5 @@
 .env
 *.log
 node_modules
+geo_loader
 testers

@@ -1,4 +1,5 @@
 // swiped the Obj -> Array from here: https://stackoverflow.com/questions/6857468/converting-a-js-object-to-an-array
+var fs = require('fs');
 
 function getSeries(id) {
   var seriesFile = _DEFAULTS.files['series']['series'];
@@ -150,6 +151,70 @@ exports.getChildren = function (parentId, parentField, outType, sources) {
 
   return data;
 }
+
+exports.getSeriesDataByRefArea = function (series_id, refarea, year, sex, age) {
+  var file_path = _DEFAULTS.files.series_data_path + refarea + '.json';
+  
+  var file = JSON.parse( fs.readFileSync( file_path ) );
+
+  if (!year) {
+    year = 0;
+    file.forEach(function (item) {
+      if (item.SERIES === series_id) {
+        year = Math.max(year, parseInt(item.TIMEPERIOD));
+      }
+    });
+
+    year = year.toString();
+  }
+
+  if (!sex) {
+    sex = 'T';
+  }
+
+  if (!age) {
+    age = '000_099_Y';
+  }
+  // console.log(age, sex, year);
+  var data = file.reduce(function (acc, item) {
+    if (item.SERIES === series_id 
+        && item.TIMEPERIOD === year
+        && item.SEX === sex
+        && item.AGEGROUP === age) {
+
+      var obj = {};
+      if (item.UNITMULT !== '0') {
+
+      } else {
+        obj = {
+          value: parseFloat(item.OBSVALUE),
+          age_group: item.AGEGROUP
+        };
+      }
+
+      acc.push(obj);
+    }
+    return acc;
+  }, []);
+  
+  return data;
+}
+
+exports.getGeoJson = function (refarea) {
+  var file_path = _DEFAULTS.files.geometry_path + '/' + refarea + '-geo.json'
+
+  var file = JSON.parse( fs.readFileSync( file_path ) );
+
+  return file.geometry;
+} 
+
+exports.getEsriJson = function (refarea) {
+  var file_path = _DEFAULTS.files.geometry_path + '/' + refarea + '-esri.json'
+
+  var file = JSON.parse( fs.readFileSync( file_path ) );
+
+  return file.geometry;
+} 
 
 exports.buildMetaObject = function (query, len, queryParams, messages) {
   var meta = {
