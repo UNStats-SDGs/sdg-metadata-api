@@ -240,10 +240,70 @@ exports.getById = function (query, next, cb) {
 
         out_json.included = out_json.included.concat( indicators );
       }
-
     }
 
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
+    if (queryParams && queryParams.refarea) {
+      var year = queryParams.year || null;
+      var age = queryParams.age || null;
+      var sex = queryParams.sex || null;
+
+      var series_attributes = utils.getSeriesDataByRefArea(series_id, queryParams.refarea, year, sex, age);
+      
+      series_attributes.forEach(function (item) {
+        var atts = {};
+
+        Object.keys(item).forEach(function (key) {
+          out_json.data.attributes[key] = item[key];
+        });
+
+        if (queryParams.returnGeometry === 'true') {
+          if (queryParams.f === 'geojson') {
+            out_json = {
+              type: "FeatureCollection",
+              crs: {
+                type: "name", 
+                properties: {
+                  name: "EPSG:3857"
+                }
+              },
+              features: [
+                {
+                  type: 'Feature',
+                  properties: out_json.data.attributes,
+                  geometry: utils.getGeoJson(queryParams.refarea)
+                }
+              ]              
+            }            
+          } else if (queryParams.f === 'esrijson') {
+            out_json = {
+              geometryType: "esriGeometryPolygon",
+              spatialReference: {
+                wkid: 102100,
+                latestWkid: 3857                
+              },
+              fields: [],
+              features: [
+                {
+                  attributes: out_json.data.attributes,
+                  geometry: utils.getEsriJson(queryParams.refarea)
+                }
+              ]              
+            } 
+          } else {
+            out_json.data.attributes = atts;
+            out_json.data.geometry = geom;           
+          }
+        }
+
+      });
+    }
+
+    if (queryParams 
+        && queryParams.f !== 'geojson' 
+        && queryParams.f !== 'esrijson') {
+
+      out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
+    }
 
   }
   catch (ex) {

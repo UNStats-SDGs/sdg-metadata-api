@@ -3,7 +3,7 @@ Live Example @ [https://unstats-sdg-api.herokuapp.com](https://unstats-sdg-api.h
 
 An API to retrieve information and metadata on the [Sustainable Development Goals](http://www.un.org/sustainabledevelopment/sustainable-development-goals/). 
 
-This API does its best to follow the [JSONAPI Specification](http://jsonapi.org/).
+This API does its best to follow the [JSONAPI Specification](http://jsonapi.org/), but is not a full implementation. It's recommended a full implementation of the JSON API Specification include a more robust approach such as [jsonapi-server](https://github.com/holidayextras/jsonapi-server)
 
 So let's go build something that changes the world.
 
