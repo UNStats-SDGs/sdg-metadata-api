@@ -46,6 +46,8 @@ app.listen(port, function () {
 
   _LOCATION_TYPE_SDG = JSON.parse( fs.readFileSync('data/defaults/LOCATION_TYPE_SDG.json') );
 
+  _REF_AREA_SDG = JSON.parse( fs.readFileSync('data/defaults/REF_AREA_SDG.json') );
+
   _DEFAULTS = {
     files: {
       goals: _GOALS,
@@ -64,6 +66,7 @@ app.listen(port, function () {
     nature_sdg: _NATURE_SDG,
     source_type_sdg: _SOURCE_TYPE_SDG,
     location_type_sdg: _LOCATION_TYPE_SDG,
+    ref_area_sdg: _REF_AREA_SDG,
     model_type: {
       goals: 'goal',
       targets: 'target',

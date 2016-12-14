@@ -271,7 +271,8 @@ exports.getById = function (query, next, cb) {
       // console.log('params', params);
       // console.log('--------------------------------');
       
-      var features = [];
+      var features = [], valueIsString = false;
+
       params.forEach(function (param) {
         var feature = {}, series_data = {}, attributes;
         
@@ -288,8 +289,8 @@ exports.getById = function (query, next, cb) {
           attributes = Object.assign({}, series_data, out_json.data.attributes);
           // console.log('attributes', attributes);
           
+          var base_atts;
           if (queryParams.returnGeometry === 'true') {
-            var base_atts;
             if (queryParams.f === 'geojson') {
               base_atts = utils.getGeoJsonGeometryForArea(param.refarea);
               feature.geometry = base_atts.geometry;
@@ -298,11 +299,17 @@ exports.getById = function (query, next, cb) {
               base_atts = utils.getEsriJsonGeometryForArea(param.refarea);
               feature.geometry = base_atts.geometry;
               feature.attributes = Object.assign({}, attributes, base_atts.attributes);
+
+              if (typeof attributes.value === 'string') {
+                valueIsString = true;
+              }
             }
           } else {
             feature.id = out_json.data.id;
             feature.type = out_json.data.type;
-            feature.attributes = attributes;
+            // need to attach country name & codes here
+            base_atts = _DEFAULTS.ref_area_sdg[attributes.refarea];
+            feature.attributes = Object.assign({}, attributes, base_atts);
           }
 
           features.push( feature );
@@ -310,16 +317,20 @@ exports.getById = function (query, next, cb) {
         }
       });
 
+      console.log('features', features);
+
       // check again to adjust response
       if (queryParams.returnGeometry === 'true') {
         if (queryParams.f === 'geojson') {
           out_json = utils.getGeoJsonTemplate();
         } else if (queryParams.f === 'esrijson') {
           out_json = utils.getEsriJsonTemplate();
+          if (valueIsString) {
+            out_json.fields.forEach( (field) => { if (field.name === 'value') { field.type === 'esriFieldTypeString'; } });
+          }
         }
 
         out_json.features = features;
-
       } else {
         out_json.data = features;
       }
