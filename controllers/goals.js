@@ -53,4 +53,10 @@ router.get('/:id/targets/:target_id/indicators/:indicator_id/series/:series_id',
   });
 });
 
+router.get('/:id/targets/:target_id/indicators/:indicator_id/series/:series_id/describe', function (req, res, next) {
+  Series.describeSeries(req, next, function (err, response) {
+    res.json( response );
+  });
+});
+
 module.exports = router;

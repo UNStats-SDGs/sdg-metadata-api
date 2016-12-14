@@ -200,7 +200,7 @@ exports.getById = function (query, next, cb) {
     data = utils.getAllByIds([series_id], 'series');
     
     out_json.data = data[0];
-
+    
     if (queryParams && queryParams.include) {
       var includes = queryParams.include.split(',');
       
@@ -243,59 +243,86 @@ exports.getById = function (query, next, cb) {
     }
 
     if (queryParams && queryParams.refarea) {
-      var year = queryParams.year || null;
-      var age = queryParams.age || null;
-      var sex = queryParams.sex || null;
 
-      var series_attributes = utils.getSeriesDataByRefArea(series_id, queryParams.refarea, year, sex, age);
-      
-      series_attributes.forEach(function (item) {
-        var atts = {};
+      var params = [];
 
-        Object.keys(item).forEach(function (key) {
-          out_json.data.attributes[key] = item[key];
+      // for each refarea
+      var areas = (queryParams.refarea) ? queryParams.refarea.split(',') : [];
+      var years = (queryParams.years) ? queryParams.years.split(',') : ['latest'];
+      var sexes = (queryParams.sex) ? queryParams.sex.split(',') : ['T', 'F', 'M'];
+      var ages = (queryParams.age) ? queryParams.age.split(',') : ['000_099_Y'];
+
+      // create combinations for "features" to return based on query parameters and/or defaults
+      areas.forEach(function (area) {
+        years.forEach(function (year) {
+          sexes.forEach(function (sex) {
+            ages.forEach(function (age) {
+              params.push({
+                refarea: area,
+                year: year,
+                sex: sex,
+                age: age
+              });
+            });
+          });
         });
+      });
 
-        if (queryParams.returnGeometry === 'true') {
-          if (queryParams.f === 'geojson') {
-            out_json = {
-              type: "FeatureCollection",
-              crs: {
-                type: "name", 
-                properties: {
-                  name: "EPSG:3857"
-                }
-              },
-              features: [
-                {
-                  type: 'Feature',
-                  properties: out_json.data.attributes,
-                  geometry: utils.getGeoJson(queryParams.refarea)
-                }
-              ]              
-            }            
-          } else if (queryParams.f === 'esrijson') {
-            out_json = {
-              geometryType: "esriGeometryPolygon",
-              spatialReference: {
-                wkid: 102100,
-                latestWkid: 3857                
-              },
-              fields: [],
-              features: [
-                {
-                  attributes: out_json.data.attributes,
-                  geometry: utils.getEsriJson(queryParams.refarea)
-                }
-              ]              
-            } 
+      // console.log('params', params);
+      // console.log('--------------------------------');
+      
+      var features = [];
+      params.forEach(function (param) {
+        var feature = {}, series_data = {}, attributes;
+        
+        series_data = utils.getSeriesDataByRefArea(series_id, param);
+
+        // if we have series data
+        if (series_data) {
+
+          // console.log('param', param);
+          // console.log('out_json.data', out_json.data);
+          // console.log('series_data', series_data);
+          // console.log('--------------------------------');
+
+          attributes = Object.assign({}, series_data, out_json.data.attributes);
+          // console.log('attributes', attributes);
+          
+          if (queryParams.returnGeometry === 'true') {
+            var base_atts;
+            if (queryParams.f === 'geojson') {
+              base_atts = utils.getGeoJsonGeometryForArea(param.refarea);
+              feature.geometry = base_atts.geometry;
+              feature.properties = Object.assign({}, attributes, base_atts.properties);
+            } else if (queryParams.f === 'esrijson') {
+              base_atts = utils.getEsriJsonGeometryForArea(param.refarea);
+              feature.geometry = base_atts.geometry;
+              feature.attributes = Object.assign({}, attributes, base_atts.attributes);
+            }
           } else {
-            out_json.data.attributes = atts;
-            out_json.data.geometry = geom;           
+            feature.id = out_json.data.id;
+            feature.type = out_json.data.type;
+            feature.attributes = attributes;
           }
+
+          features.push( feature );
+
+        }
+      });
+
+      // check again to adjust response
+      if (queryParams.returnGeometry === 'true') {
+        if (queryParams.f === 'geojson') {
+          out_json = utils.getGeoJsonTemplate();
+        } else if (queryParams.f === 'esrijson') {
+          out_json = utils.getEsriJsonTemplate();
         }
 
-      });
+        out_json.features = features;
+
+      } else {
+        out_json.data = features;
+      }
     }
 
     if (queryParams 
@@ -305,6 +332,22 @@ exports.getById = function (query, next, cb) {
       out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
     }
 
+  }
+  catch (ex) {
+    console.log(ex);
+
+    next(ex);
+  }
+
+  cb(null, out_json);
+}
+
+exports.describeSeries = function (query, next, cb) {
+  var out_json = {},
+    series_id = (query.params.series_id) ? query.params.series_id : query.params.id;
+  
+  try {
+    out_json = utils.describeSeriesDimension(series_id);
   }
   catch (ex) {
     console.log(ex);

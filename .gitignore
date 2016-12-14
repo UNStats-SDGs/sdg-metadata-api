@@ -1,5 +1,5 @@
 .env
 *.log
 node_modules
-geo_loader
+transformations
 testers

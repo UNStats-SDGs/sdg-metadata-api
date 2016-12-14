@@ -106,7 +106,7 @@ exports.getAllForTarget = function (query, next, cb) {
   var out_json = { data: [] },
     queryParams = query.query,
     goal_id = query.params.id,
-    target_id = (query.params.id) ? query.params.id : query.params.target_id,
+    target_id = (query.params.target_id) ? query.params.target_id : query.params.id,
     data,
     messages = [];
 

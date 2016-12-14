@@ -14,4 +14,10 @@ router.get('/:id', function (req, res, next) {
   });
 });
 
+router.get('/:id/describe', function (req, res, next) {
+  Series.describeSeries(req, next, function (err, response) {
+    res.json( response );
+  });
+});
+
 module.exports = router;

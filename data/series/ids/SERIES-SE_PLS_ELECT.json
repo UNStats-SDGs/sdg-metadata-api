@@ -1,0 +1,19 @@
+[
+               # Replace Windows newlines with Unix  {
+               # Replace Windows newlines with Unix    "SERIES": "SE_PLS_ELECT",
+               # Replace Windows newlines with Unix    "FREQ": "A",
+               # Replace Windows newlines with Unix    "REFAREA": "DOM",
+               # Replace Windows newlines with Unix    "LOCATION": "T",
+               # Replace Windows newlines with Unix    "AGEGROUP": "000_099_Y",
+               # Replace Windows newlines with Unix    "SEX": "T",
+               # Replace Windows newlines with Unix    "TIMEPERIOD": "2010",
+               # Replace Windows newlines with Unix    "UNIT": "PERCENT",
+               # Replace Windows newlines with Unix    "UNITMULT": "0",
+               # Replace Windows newlines with Unix    "OBSVALUE": "43.2069879894",
+               # Replace Windows newlines with Unix    "NATURE": "C",
+               # Replace Windows newlines with Unix    "SOURCETYPE": "NA",
+               # Replace Windows newlines with Unix    "SOURCEDETAIL": "UIS/E/ICT/2010, Questionnaire on Statistics on Information and Communication Technologies (ICT) in Education, 2010",
+               # Replace Windows newlines with Unix    "TIMEDETAIL": "2010",
+               # Replace Windows newlines with Unix    "FOOTNOTES": "Public"
+               # Replace Windows newlines with Unix  }
+               # Replace Windows newlines with Unix]
