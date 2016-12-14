@@ -1,7 +1,7 @@
 var express = require('express'),
   router = express.Router();
 
-router.get('/', function (req, res, next) {
+router.get('/api/v1', function (req, res, next) {
   try {
     
     var root = process.env.API_ROOT;
@@ -43,9 +43,9 @@ router.get('/', function (req, res, next) {
 
 });
 
-router.use('/goals', require('./goals'));
-router.use('/targets', require('./targets'));
-router.use('/indicators', require('./indicators'));
-router.use('/series', require('./series'));
+router.use('/api/v1/goals', require('./goals'));
+router.use('/api/v1/targets', require('./targets'));
+router.use('/api/v1/indicators', require('./indicators'));
+router.use('/api/v1/series', require('./series'));
 
 module.exports = router;
