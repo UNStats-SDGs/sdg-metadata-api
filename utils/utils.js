@@ -165,7 +165,10 @@ exports.getSeriesDataByRefArea = function (series_id, param) {
 
       var obj = {};
       
-      var value = parseFloat(item.OBSVALUE);
+      var value = item.OBSVALUE;
+      if (value.indexOf('>') === -1 && value.indexOf('<') === -1) {
+        value = parseFloat(item.OBSVALUE);
+      }
 
       var units = _DEFAULTS.unit_sdg[item.UNIT] || 'NA';
       var mult = _DEFAULTS.unit_mult[item.UNITMULT];
@@ -202,29 +205,27 @@ exports.getSeriesDataByRefArea = function (series_id, param) {
     return acc;
   }, []);
   
-  if (data[0]) {
-    return data[0];  
-  }
-  
-  return null;
+  return data[0] ||  null;
 }
 
 var geoJsonGeometryCache = {};
 exports.getGeoJsonGeometryForArea = function (refarea) {
-  if (geoJsonGeometryCache[refarea]) {
-    return geoJsonGeometryCache[refarea];
-  }
+  // if (geoJsonGeometryCache[refarea]) {
+  //   return geoJsonGeometryCache[refarea];
+  // }
 
   var file_path = _DEFAULTS.files.geometry_path + '/' + refarea + '-geo.json'
 
   var file = JSON.parse( fs.readFileSync( file_path ) );
 
-  if (file && file.geometry) {
-    geoJsonGeometryCache[refarea] = file;
-    return file; 
-  } else {
-    return null;
-  }
+  return file;
+
+  // if (file && file.geometry) {
+  //   geoJsonGeometryCache[refarea] = file;
+  //   return file; 
+  // } else {
+  //   return null;
+  // }
 }
 
 exports.getGeoJsonTemplate = function (refarea, series_atts_base, series_atts_value) {
@@ -242,21 +243,23 @@ exports.getGeoJsonTemplate = function (refarea, series_atts_base, series_atts_va
 var esriJsonGeometryCache = {};
 exports.getEsriJsonGeometryForArea = function (refarea) {
   
-  if (esriJsonGeometryCache[refarea]) {
-    console.log('adding : ' + refarea + ' geom from cache');
-    return esriJsonGeometryCache[refarea];
-  }
+  // if (esriJsonGeometryCache[refarea]) {
+  //   // console.log('adding : ' + refarea + ' geom from cache');
+  //   return esriJsonGeometryCache[refarea];
+  // }
 
   var file_path = _DEFAULTS.files.geometry_path + '/' + refarea + '-esri.json'
 
   var file = JSON.parse( fs.readFileSync( file_path ) );
 
-  if (file && file.geometry) {
-    esriJsonGeometryCache[refarea] = file;
-    return file; 
-  } else {
-    return null;
-  }
+  return file;
+
+  // if (file && file.geometry) {
+  //   esriJsonGeometryCache[refarea] = file;
+  //   return file; 
+  // } else {
+  //   return null;
+  // }
 }
 
 exports.getEsriJsonTemplate = function () {
