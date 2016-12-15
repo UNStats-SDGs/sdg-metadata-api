@@ -30,9 +30,13 @@ exports.getAll = function (query, next, cb) {
         if (queryParams && queryParams.filter && queryParams.filter.id) {
           var ids = queryParams.filter.id.split(',');
           
-          targets = ids.map(function (id) {
-            return utils.getChildren(id, 'goal_id', 'targets');
-          });
+          targets = ids
+            .map(function (id) {
+              return utils.getChildren(id, 'goal_id', 'targets');
+            })
+            .reduce(function (a,b) {
+              return a.concat(b);
+            }, []);
 
         } else {
           targets = utils.getAll('targets');

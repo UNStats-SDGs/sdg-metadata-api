@@ -292,7 +292,13 @@ exports.getEsriJsonTemplate = function () {
     ],
     features: []              
   };
-} 
+}
+
+exports.getEsriJsonFcTemplate = function () {
+ return {
+  
+ }
+}
 
 exports.describeSeriesDimension = function (series_id) {
   var file_path = _DEFAULTS.files.series_ids_data_path + series_id + '.json';

@@ -334,6 +334,34 @@ exports.getById = function (query, next, cb) {
             out_json.fields.forEach( (field) => { if (field.name === 'value') { field.type === 'esriFieldTypeString'; } });
           }
           out_json.features = features;
+        } else if (queryParams.f === 'esrijsonfc') {
+          // var fc_base = utils.getEsriJsonFcTemplate();
+          var fc_base = {};
+          var fs_base = utils.getEsriJsonTemplate();
+          // the value for the series isn't always a Number. check for string and adjust esriFieldType<whatever>
+          if (valueIsString) {
+            fs_base.fields.forEach( (field) => { if (field.name === 'value') { field.type === 'esriFieldTypeString'; } });
+          }
+          fc_base.layers = [
+            {
+              layerDefinition: {
+                geometryType: 'esriGeometryPolygon',
+                type: 'Feature Layer',
+                drawingInfo: {},
+                fields: [],
+                types: [],
+                capabilities: 'Query',
+                name: 'test',
+                templates: []
+              },
+              featureSet: {
+                features: features,
+                geometryType: 'esriGeometryPolygon'
+              }
+            }
+          ];
+
+          out_json = fc_base;
         } else {
           if (queryParams.f === 'geojson') {
             out_json = utils.getGeoJsonTemplate();
@@ -350,7 +378,8 @@ exports.getById = function (query, next, cb) {
 
     if (queryParams 
         && queryParams.f !== 'geojson' 
-        && queryParams.f !== 'esrijson') {
+        && queryParams.f !== 'esrijson'
+        && queryParams.f !== 'esrijsonfc') {
 
       out_json.meta = utils.buildMetaObject(query, out_json.data.length, queryParams, messages.length > 0 ? messages : null);
     }
