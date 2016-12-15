@@ -343,23 +343,39 @@ exports.getById = function (query, next, cb) {
           if (valueIsString) {
             fs_base.fields.forEach( (field) => { if (field.name === 'value') { field.type === 'esriFieldTypeString'; } });
           }
+
+          var fields = utils.getEsriJsonTemplate().fields;
+          fields.push({
+            name: '__OBJECTID',
+            alias: '__OBJECTID',
+            type: 'esriFieldTypeOID'
+          });
+
           fc_base.layers = [
             {
               layerDefinition: {
                 id: 'featureCollection_' + Math.floor(Math.random() * 10001),
                 geometryType: 'esriGeometryPolygon',
                 type: 'Feature Layer',
-                drawingInfo: {},
-                fields: utils.getEsriJsonTemplate().fields,
+                drawingInfo: {
+                  renderer: {
+                    type: 'simple',
+                    symbol: {
+                      type: 'esriSFS',
+                      style: 'esriSFSSolid',
+                      color: [200,0,0,255]
+                    }
+                  }
+                },
+                fields: fields,
                 types: [],
                 capabilities: 'Query',
-                name: 'test',
-                templates: []
+                objectIdField: '__OBJECTID',
+                typeIdField: ''
               },
               featureSet: {
                 features: features,
                 geometryType: 'esriGeometryPolygon'
-                // ,spatialReference: { wkid: 102100, latestWkid: 3857 }
               }
             }
           ];
