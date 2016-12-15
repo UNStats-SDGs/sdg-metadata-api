@@ -102,6 +102,6 @@ You are also able to use this query method without having to return the geometry
 
 For Example:
 
-- [https://unstats-sdg-api.herokuapp.com/api/v1/series/AG_LND_FRST?refarea=KEN&years=2015,2010,2005&include=goals,targets,indicators&sources=true](http://localhost:3000/api/v1/series/AG_LND_FRST?refarea=KEN&years=2015,2010,2005&include=goals,targets,indicators&sources=true)
+- [https://unstats-sdg-api.herokuapp.com/api/v1/series/AG_LND_FRST?refarea=KEN&years=2015,2010,2005&include=goals,targets,indicators&sources=true](https://unstats-sdg-api.herokuapp.com/api/v1/series/AG_LND_FRST?refarea=KEN&years=2015,2010,2005&include=goals,targets,indicators&sources=true)
   - Will return data values on Series **AG_LND_FRST** for Kenya
   - The data values will for be for **years** 2015, 2010, and 2005, if available
