@@ -360,19 +360,55 @@ exports.getById = function (query, next, cb) {
                 type: 'Feature Layer',
                 drawingInfo: {
                   renderer: {
-                    type: 'simple',
-                    symbol: {
-                      type: 'esriSFS',
-                      style: 'esriSFSSolid',
-                      color: [200,0,0,255]
-                    }
+                  "colorInfo": {
+                    "field": "value",
+                    "minDataValue": 0,
+                    "maxDataValue": 100,
+                    "colors": [
+                      [
+                        255,
+                        255,
+                        255,
+                        255
+                      ],
+                      [
+                        127,
+                        127,
+                        0,
+                        255
+                      ]
+                    ]
+                  },
+                  "type": "simple",
+                  "symbol": {
+                    "color": [
+                      0,
+                      0,
+                      0,
+                      64
+                    ],
+                    "outline": {
+                      "color": [
+                        128,
+                        128,
+                        128,
+                        255
+                      ],
+                      "width": 0.07500000000000001,
+                      "type": "esriSLS",
+                      "style": "esriSLSSolid"
+                    },
+                    "type": "esriSFS",
+                    "style": "esriSFSSolid"
                   }
+                }
                 },
                 fields: fields,
                 types: [],
                 capabilities: 'Query',
                 objectIdField: '__OBJECTID',
-                typeIdField: ''
+                typeIdField: '',
+                name: ''
               },
               featureSet: {
                 features: features,
