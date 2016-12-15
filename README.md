@@ -17,7 +17,7 @@ So let's go build something that changes the world.
 - api now available @ `http://localhost:3000/api/v1`
 
 ---
-# Documentation
+# Let's Do This!
 You can navigate the API using the Goal -> Target -> Indicator -> Series pattern.
 
 For example:
