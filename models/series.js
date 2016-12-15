@@ -297,6 +297,7 @@ exports.getById = function (query, next, cb) {
               
               feature.attributes = Object.assign({}, attributes, base_atts.attributes);
               feature.geometry = base_atts.geometry;
+              feature.geometry.spatialReference = { wkid: 102100 };
 
               if (typeof attributes.value === 'string') {
                 valueIsString = true;
@@ -345,6 +346,7 @@ exports.getById = function (query, next, cb) {
           fc_base.layers = [
             {
               layerDefinition: {
+                id: 'featureCollection_' + Math.floor(Math.random() * 10001),
                 geometryType: 'esriGeometryPolygon',
                 type: 'Feature Layer',
                 drawingInfo: {},
@@ -356,8 +358,8 @@ exports.getById = function (query, next, cb) {
               },
               featureSet: {
                 features: features,
-                geometryType: 'esriGeometryPolygon',
-                spatialReference: { wkid: 102100, latestWkid: 3857 }
+                geometryType: 'esriGeometryPolygon'
+                // ,spatialReference: { wkid: 102100, latestWkid: 3857 }
               }
             }
           ];
