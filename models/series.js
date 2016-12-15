@@ -356,7 +356,7 @@ exports.getById = function (query, next, cb) {
               },
               featureSet: {
                 features: features,
-                geometryType: 'esriGeometryPolygon'
+                geometryType: 'esriGeometryPolygon',
                 spatialReference: { wkid: 102100, latestWkid: 3857 }
               }
             }
