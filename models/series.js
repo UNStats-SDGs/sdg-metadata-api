@@ -296,6 +296,7 @@ exports.getById = function (query, next, cb) {
               base_atts = utils.getEsriJsonGeometryForArea(param.refarea);
               
               feature.attributes = Object.assign({}, attributes, base_atts.attributes);
+              feature.attributes.__OBJECTID = features.length + 1;
               feature.geometry = base_atts.geometry;
               feature.geometry.spatialReference = { wkid: 102100 };
 
