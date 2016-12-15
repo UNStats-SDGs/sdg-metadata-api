@@ -362,7 +362,7 @@ exports.getById = function (query, next, cb) {
             }
           ];
 
-          out_json = fc_base;
+          out_json = { featureCollection: { layers: fc_base.layers } };
         } else {
           if (queryParams.f === 'geojson') {
             out_json = utils.getGeoJsonTemplate();
