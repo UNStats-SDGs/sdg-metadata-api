@@ -196,8 +196,7 @@ exports.getSeriesDataByRefArea = function (series_id, param) {
 
       if (item.UNITMULT !== '0' && mult) {
         obj.unit_multiplier = mult.description;
-        // may not need to do any extra calcs here
-        // var mult = _DEFAULTS.unit_mult[item.UNITMULT];  
+        // may not need to do any extra calcs here on 
       }
       
       acc.push(obj);
