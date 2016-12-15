@@ -291,23 +291,31 @@ exports.getById = function (query, next, cb) {
           
           var base_atts;
           if (queryParams.returnGeometry === 'true') {
-            if (queryParams.f === 'geojson') {
-              base_atts = utils.getGeoJsonGeometryForArea(param.refarea);
-              feature.geometry = base_atts.geometry;
-              feature.properties = Object.assign({}, attributes, base_atts.properties);
-            } else if (queryParams.f === 'esrijson') {
+
+            if (queryParams.f === 'esrijson') {
               base_atts = utils.getEsriJsonGeometryForArea(param.refarea);
-              feature.geometry = base_atts.geometry;
+              
               feature.attributes = Object.assign({}, attributes, base_atts.attributes);
+              feature.geometry = base_atts.geometry;
 
               if (typeof attributes.value === 'string') {
                 valueIsString = true;
               }
+            } else {
+              base_atts = utils.getGeoJsonGeometryForArea(param.refarea);
+              
+              if (queryParams.f === 'geojson') {
+                feature.properties = Object.assign({}, attributes, base_atts.properties);
+                feature.geometry = base_atts.geometry;
+              } else {
+                feature.attributes = Object.assign({}, { geometry: base_atts.geometry }, attributes, base_atts.properties);
+              }
             }
+
           } else {
             feature.id = out_json.data.id;
             feature.type = out_json.data.type;
-            // need to attach country name & codes here
+            
             base_atts = _DEFAULTS.ref_area_sdg[attributes.refarea];
             feature.attributes = Object.assign({}, attributes, base_atts);
           }
@@ -317,20 +325,24 @@ exports.getById = function (query, next, cb) {
         }
       });
 
-      console.log('features', features);
-
       // check again to adjust response
       if (queryParams.returnGeometry === 'true') {
-        if (queryParams.f === 'geojson') {
-          out_json = utils.getGeoJsonTemplate();
-        } else if (queryParams.f === 'esrijson') {
+        if (queryParams.f === 'esrijson') {
           out_json = utils.getEsriJsonTemplate();
+          // the value for the series isn't always a Number. check for string and adjust esriFieldType<whatever>
           if (valueIsString) {
             out_json.fields.forEach( (field) => { if (field.name === 'value') { field.type === 'esriFieldTypeString'; } });
           }
+          out_json.features = features;
+        } else {
+          if (queryParams.f === 'geojson') {
+            out_json = utils.getGeoJsonTemplate();
+            out_json.features = features;
+          } else{
+            delete out_json.data;
+            out_json.data = features;
+          }
         }
-
-        out_json.features = features;
       } else {
         out_json.data = features;
       }
@@ -340,7 +352,7 @@ exports.getById = function (query, next, cb) {
         && queryParams.f !== 'geojson' 
         && queryParams.f !== 'esrijson') {
 
-      out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
+      out_json.meta = utils.buildMetaObject(query, out_json.data.length, queryParams, messages.length > 0 ? messages : null);
     }
 
   }

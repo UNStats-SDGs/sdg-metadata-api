@@ -14,11 +14,11 @@ So let's go build something that changes the world.
 - `cd` into dir
 - `npm install`
 - `npm start`
-- api now available @ `http://localhost:3000`
+- api now available @ `http://localhost:3000/api/v1`
 
 ---
 # Documentation
-You can navigate the API using the Goal -> Target -> Indicator pattern.
+You can navigate the API using the Goal -> Target -> Indicator -> Series pattern.
 
 For example:
 
@@ -80,3 +80,28 @@ For Example:
   - This request will return data for Goals 1 & 3 **and** the data for each related Target
 - [https://unstats-sdg-api.herokuapp.com/api/v1/indicators?filter[id]=1.1.1,2.a.1&include=goals](https://unstats-sdg-api.herokuapp.com/api/v1/indicators?filter[id]=1.1.1,2.a.1&include=goals)
   - This request will return data for Indicators 1.1.1 & 2.a.1 **and** the data for each related Goal
+  
+## Returning Geographic Data
+The API will allow for returning geographic data in [GeoJSON](http://geojson.org/geojson-spec.html), Esri supported JSON and JSON API (an included `geometry` property on each data element in GeoJSON format). Currently, only the `/series/{:id}` endpoint will return geographic data if the following query parameters are supplied in the request:
+
+  - `refarea` **(required)** | 3 digit country code (ex: `FRA, THA, USA`)
+  - `age` | Age Group Code (ex: `000_099_Y` for All age ranges or no breakdown by age)
+  - `sex` | Sex Code (ex: `F,M,T`)
+  - `years` | Time Periods (ex: `2015,2005`) (currently only supports year values in YYYY format)
+  - `returnGeometry` | Boolean flag to include geographic data in response
+  - `f`	| Response format (ex: `geojson` or `esrijson`)
+  
+For Example:
+
+- [https://unstats-sdg-api.herokuapp.com/api/v1/series/EG_EGY_CLEAN?refarea=PRT,THA&returnGeometry=true&f=geojson]([https://unstats-sdg-api.herokuapp.com/api/v1//series/EG_EGY_CLEAN?refarea=PRT,THA&returnGeometry=true&f=geojson)
+  - Will return data values on Series **EG_EGY_CLEAN** for Portugual and Thailand
+  - The data values will be for the latest year available, per `refarea` specified
+  - The **entire** response will be formatted in GeoJSON
+
+You are also able to use this query method without having to return the geometry. This will let you query the data by country, age, sex and time period independently.
+
+For Example:
+
+- [https://unstats-sdg-api.herokuapp.com/api/v1/series/AG_LND_FRST?refarea=KEN&years=2015,2010,2005&include=goals,targets,indicators&sources=true](http://localhost:3000/api/v1/series/AG_LND_FRST?refarea=KEN&years=2015,2010,2005&include=goals,targets,indicators&sources=true)
+  - Will return data values on Series **AG_LND_FRST** for Kenya
+  - The data values will for be for **years** 2015, 2010, and 2005, if available
