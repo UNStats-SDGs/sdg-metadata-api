@@ -105,3 +105,7 @@ For Example:
 - [https://unstats-sdg-api.herokuapp.com/api/v1/series/AG_LND_FRST?refarea=KEN&years=2015,2010,2005&include=goals,targets,indicators&sources=true](https://unstats-sdg-api.herokuapp.com/api/v1/series/AG_LND_FRST?refarea=KEN&years=2015,2010,2005&include=goals,targets,indicators&sources=true)
   - Will return data values on Series **AG_LND_FRST** for Kenya
   - The data values will for be for **years** 2015, 2010, and 2005, if available
+  
+For help determining what values are available to you per Series, you can use the `/describe` endpoint.
+
+For example, [https://unstats-sdg-api.herokuapp.com/api/v1/series/EG_EGY_CLEAN/describe](https://unstats-sdg-api.herokuapp.com/api/v1/series/EG_EGY_CLEAN/describe) will return all the available `refareas`, `time_periods` (years), `ages`, and `sexes` (sex) to use in the query parameters shown above.
