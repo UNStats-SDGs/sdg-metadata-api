@@ -292,7 +292,7 @@ exports.getById = function (query, next, cb) {
           var base_atts;
           if (queryParams.returnGeometry === 'true') {
 
-            if (queryParams.f === 'esrijson') {
+            if (queryParams.f === 'esrijson' || queryParams.f === 'esrijsonfc') {
               base_atts = utils.getEsriJsonGeometryForArea(param.refarea);
               
               feature.attributes = Object.assign({}, attributes, base_atts.attributes);
@@ -346,9 +346,10 @@ exports.getById = function (query, next, cb) {
             {
               layerDefinition: {
                 geometryType: 'esriGeometryPolygon',
+                spatialReference: { wkid: 102100, latestWkid: 3857 },
                 type: 'Feature Layer',
                 drawingInfo: {},
-                fields: [],
+                fields: utils.getEsriJsonTemplate().fields,
                 types: [],
                 capabilities: 'Query',
                 name: 'test',
