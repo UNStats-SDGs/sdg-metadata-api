@@ -346,7 +346,6 @@ exports.getById = function (query, next, cb) {
             {
               layerDefinition: {
                 geometryType: 'esriGeometryPolygon',
-                spatialReference: { wkid: 102100, latestWkid: 3857 },
                 type: 'Feature Layer',
                 drawingInfo: {},
                 fields: utils.getEsriJsonTemplate().fields,
@@ -358,6 +357,7 @@ exports.getById = function (query, next, cb) {
               featureSet: {
                 features: features,
                 geometryType: 'esriGeometryPolygon'
+                spatialReference: { wkid: 102100, latestWkid: 3857 }
               }
             }
           ];
