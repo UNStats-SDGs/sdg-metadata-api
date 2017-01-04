@@ -137,6 +137,8 @@ exports.getChildren = function (parentId, parentField, outType, sources) {
 
     }, []);
 
+  console.log(data);
+  
   return data;
 }
 
