@@ -273,6 +273,9 @@ exports.getById = function (query, next, cb) {
       
       var features = [], valueIsString = false;
 
+      var format = queryParams.f;
+      var returnGeometry = (queryParams.returnGeometry === 'true') ? true : false;
+
       params.forEach(function (param) {
         var feature = {}, series_data = {}, attributes;
         
@@ -290,143 +293,114 @@ exports.getById = function (query, next, cb) {
           // console.log('attributes', attributes);
           
           var base_atts;
-          if (queryParams.returnGeometry === 'true') {
+          
+          if (format === 'esrijson' || format === 'esrijsonfc') {
+            feature.attributes = Object.assign({}, attributes, _DEFAULTS.ref_area_sdg[param.refarea]);
 
-            if (queryParams.f === 'esrijson' || queryParams.f === 'esrijsonfc') {
-              base_atts = utils.getEsriJsonGeometryForArea(param.refarea);
-              
-              feature.attributes = Object.assign({}, attributes, base_atts.attributes);
-              feature.attributes.__OBJECTID = features.length + 1;
-              feature.geometry = base_atts.geometry;
-              feature.geometry.spatialReference = { wkid: 102100 };
+            if (returnGeometry) {
+              feature.geometry = utils.getEsriJsonGeometryForArea(param.refarea);
+              if (feature.geometry) {
+                feature.geometry.spatialReference = { wkid: 102100 };
+              }
+            }
 
-              if (typeof attributes.value === 'string') {
-                valueIsString = true;
-              }
-            } else {
-              base_atts = utils.getGeoJsonGeometryForArea(param.refarea);
-              
-              if (queryParams.f === 'geojson') {
-                feature.properties = Object.assign({}, attributes, base_atts.properties);
-                feature.geometry = base_atts.geometry;
-              } else {
-                feature.attributes = Object.assign({}, { geometry: base_atts.geometry }, attributes, base_atts.properties);
-              }
+            if (typeof attributes.value === 'string') {
+              valueIsString = true;
+            }
+
+            // assign an OBJECTID
+            feature.attributes.__OBJECTID = features.length + 1;
+
+          } else if (format === 'geojson') {
+            feature.properties = Object.assign({}, attributes, _DEFAULTS.ref_area_sdg[param.refarea]);
+
+            if (returnGeometry) {
+              feature.geometry = utils.getGeoJsonGeometryForArea(param.refarea);
             }
 
           } else {
             feature.id = out_json.data.id;
             feature.type = out_json.data.type;
+            feature.attributes = Object.assign({}, attributes, _DEFAULTS.ref_area_sdg[param.refarea]);
             
-            base_atts = _DEFAULTS.ref_area_sdg[attributes.refarea];
-            feature.attributes = Object.assign({}, attributes, base_atts);
+            if (returnGeometry) {
+              feature.attributes = Object.assign(feature.attributes, { geometry: utils.getGeoJsonGeometryForArea(param.refarea) });
+            }
           }
 
           features.push( feature );
 
         }
+
       });
 
-      // check again to adjust response
-      if (queryParams.returnGeometry === 'true') {
-        if (queryParams.f === 'esrijson') {
-          out_json = utils.getEsriJsonTemplate();
-          // the value for the series isn't always a Number. check for string and adjust esriFieldType<whatever>
-          if (valueIsString) {
-            out_json.fields.forEach( (field) => { if (field.name === 'value') { field.type === 'esriFieldTypeString'; } });
-          }
-          out_json.features = features;
-        } else if (queryParams.f === 'esrijsonfc') {
-          // var fc_base = utils.getEsriJsonFcTemplate();
-          var fc_base = {};
-          var fs_base = utils.getEsriJsonTemplate();
-          // the value for the series isn't always a Number. check for string and adjust esriFieldType<whatever>
-          if (valueIsString) {
-            fs_base.fields.forEach( (field) => { if (field.name === 'value') { field.type === 'esriFieldTypeString'; } });
-          }
+      if (format === 'esrijson' || format === 'esrijsonfc') {
+        out_json = utils.getEsriJsonTemplate();
 
-          var fields = utils.getEsriJsonTemplate().fields;
-          fields.push({
-            name: '__OBJECTID',
-            alias: '__OBJECTID',
-            type: 'esriFieldTypeOID'
-          });
+        if (!returnGeometry) {
+          delete out_json.geometryType;
+          delete out_json.spatialReference;
+        }
 
-          fc_base.layers = [
-            {
-              layerDefinition: {
-                id: 'featureCollection_' + Math.floor(Math.random() * 10001),
-                geometryType: 'esriGeometryPolygon',
-                type: 'Feature Layer',
-                drawingInfo: {
-                  renderer: {
-                  "colorInfo": {
-                    "field": "value",
-                    "minDataValue": 0,
-                    "maxDataValue": 100,
-                    "colors": [
-                      [
-                        255,
-                        255,
-                        255,
-                        255
-                      ],
-                      [
-                        127,
-                        127,
-                        0,
-                        255
-                      ]
-                    ]
+        // the value for the series isn't always a Number. check for string and adjust esriFieldType<whatever>
+        if (valueIsString) {
+          out_json.fields.forEach( (field) => { if (field.name === 'value') { field.type === 'esriFieldTypeString'; } });
+        }
+
+        var iso2CodeIndex = -1, iso3CodeIndex = -1;
+        out_json.fields.forEach( (field, ind) => { 
+          if (field.name === 'iso3_code') { iso3CodeIndex = ind; } 
+          if (field.name === 'iso2_code') { iso2CodeIndex = ind; } 
+        });
+
+        if (features[0].geometry === null) {
+          out_json.fields.splice(iso3CodeIndex);
+          out_json.fields.splice(iso2CodeIndex);
+
+          out_json.fields.push({ name: 'other_code', alias: 'Other Code', type: 'esriFieldTypeString'});
+        }
+
+        out_json.fields.push({
+          name: '__OBJECTID',
+          alias: '__OBJECTID',
+          type: 'esriFieldTypeOID'
+        });
+
+        if (format === 'esrijsonfc') {
+          out_json = {
+            featureCollection: {
+              layers: [
+                {
+                  layerDefinition: {
+                    id: 'featureCollection_' + Math.floor(Math.random() * 10001),
+                    geometryType: 'esriGeometryPolygon',
+                    type: 'Feature Layer',
+                    fields: out_json.fields,
+                    types: [],
+                    capabilities: 'Query',
+                    objectIdField: '__OBJECTID',
+                    typeIdField: '',
+                    name: ''
                   },
-                  "type": "simple",
-                  "symbol": {
-                    "color": [
-                      0,
-                      0,
-                      0,
-                      64
-                    ],
-                    "outline": {
-                      "color": [
-                        128,
-                        128,
-                        128,
-                        255
-                      ],
-                      "width": 0.07500000000000001,
-                      "type": "esriSLS",
-                      "style": "esriSLSSolid"
-                    },
-                    "type": "esriSFS",
-                    "style": "esriSFSSolid"
+                  featureSet: {
+                    features: features,
+                    geometryType: 'esriGeometryPolygon'
                   }
                 }
-                },
-                fields: fields,
-                types: [],
-                capabilities: 'Query',
-                objectIdField: '__OBJECTID',
-                typeIdField: '',
-                name: ''
-              },
-              featureSet: {
-                features: features,
-                geometryType: 'esriGeometryPolygon'
-              }
+              ]
             }
-          ];
-
-          out_json = { featureCollection: { layers: fc_base.layers } };
+          };
         } else {
-          if (queryParams.f === 'geojson') {
-            out_json = utils.getGeoJsonTemplate();
-            out_json.features = features;
-          } else{
-            delete out_json.data;
-            out_json.data = features;
-          }
+          out_json.features = features;
         }
+        
+      } else if (format === 'geojson') {
+        out_json = utils.getGeoJsonTemplate();
+
+        if (!returnGeometry) {
+          delete out_json.crs;
+        }
+        out_json.features = features;
       } else {
         out_json.data = features;
       }

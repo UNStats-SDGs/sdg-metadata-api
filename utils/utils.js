@@ -217,7 +217,13 @@ exports.getGeoJsonGeometryForArea = function (refarea) {
 
   var file_path = _DEFAULTS.files.geometry_path + '/' + refarea + '-geo.json'
 
-  var file = JSON.parse( fs.readFileSync( file_path ) );
+  var file = null;
+  try {
+    file = JSON.parse( fs.readFileSync( file_path ) );
+  }
+  catch (ex) {
+    // do nothing right now
+  }
 
   return file;
 
@@ -251,7 +257,13 @@ exports.getEsriJsonGeometryForArea = function (refarea) {
 
   var file_path = _DEFAULTS.files.geometry_path + '/' + refarea + '-esri.json'
 
-  var file = JSON.parse( fs.readFileSync( file_path ) );
+  var file = null;
+  try {
+    file = JSON.parse( fs.readFileSync( file_path ) );
+  }
+  catch (ex) {
+    // do nothing right now
+  }
 
   return file;
 
@@ -285,7 +297,7 @@ exports.getEsriJsonTemplate = function () {
       { name: 'is_official', alias: 'Is Official', type: 'esriFieldTypeString' },
       { name: 'iso3_code', alias: 'ISO 3 Digit Code', type: 'esriFieldTypeString' },
       { name: 'iso2_code', alias: 'ISO 2 Digit Code', type: 'esriFieldTypeString' },
-      { name: 'country_name', alias: 'Country Name', type: 'esriFieldTypeString' },
+      { name: 'area_name', alias: 'Area Name', type: 'esriFieldTypeString' },
       { name: 'footnotes', alias: 'Footnotes', type: 'esriFieldTypeString' },
       { name: 'source_detail', alias: 'Source Detail', type: 'esriFieldTypeString' },
       { name: 'source_type', alias: 'Source Type', type: 'esriFieldTypeString' },
