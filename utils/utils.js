@@ -168,8 +168,19 @@ exports.getSeriesDataByRefArea = function (series_id, param) {
       var obj = {};
       
       var value = item.OBSVALUE;
-      if (value.indexOf('>') === -1 && value.indexOf('<') === -1) {
+      if (value.indexOf('>') !== -1 || value.indexOf('<') !== -1) {
+        // if (param.refarea === '891') {
+          // console.log('value', value);
+        value = value.replace('<','').replace('>','');
+          // console.log('value', value);
+        // }
+        value = parseFloat(value);
+      } else {
         value = parseFloat(item.OBSVALUE);
+      }
+
+      if (isNaN(value)) {
+        value = -9999;
       }
 
       var units = _DEFAULTS.unit_sdg[item.UNIT] || 'NA';
