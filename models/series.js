@@ -275,11 +275,13 @@ exports.getById = function (query, next, cb) {
 
       var format = queryParams.f;
       var returnGeometry = (queryParams.returnGeometry === 'true') ? true : false;
+      var skipNullGeometry = (queryParams.skipNullGeometry === 'true') ? true : false;
 
       params.forEach(function (param) {
         var feature = {}, series_data = {}, attributes;
         
         series_data = utils.getSeriesDataByRefArea(series_id, param);
+        // console.log('series_data', series_data);
 
         // if we have series data
         if (series_data) {
@@ -299,9 +301,11 @@ exports.getById = function (query, next, cb) {
 
             if (returnGeometry) {
               feature.geometry = utils.getEsriJsonGeometryForArea(param.refarea);
+
               if (feature.geometry) {
                 feature.geometry.spatialReference = { wkid: 102100 };
               }
+
             }
 
             if (typeof attributes.value === 'string') {
@@ -328,7 +332,13 @@ exports.getById = function (query, next, cb) {
             }
           }
 
-          features.push( feature );
+          if (!skipNullGeometry) {
+            features.push( feature );
+          } else {
+            if (feature.geometry !== null) {
+              features.push( feature );
+            }
+          }
 
         }
 
