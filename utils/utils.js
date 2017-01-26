@@ -81,8 +81,6 @@ exports.getAllByIds = function (ids, type, sources) {
         acc.push(item);
       } else {
         
-        console.log(id);
-
         throw {
           title: 'Resource not found',
           status: 404,
@@ -136,8 +134,6 @@ exports.getChildren = function (parentId, parentField, outType, sources) {
       return acc;
 
     }, []);
-
-  console.log(data);
   
   return data;
 }
@@ -356,6 +352,11 @@ exports.describeSeriesDimension = function (series_id) {
       }
     }
   });
+
+  output.refareas.sort();
+  output.time_periods.sort();
+  output.ages.sort();
+  output.sexes.sort();
 
   return output;
 }
