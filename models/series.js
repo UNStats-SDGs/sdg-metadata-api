@@ -14,7 +14,7 @@ exports.getAll = function (query, next, cb) {
     messages = [];
 
   try {
-    
+
     var sources = false;
     if (queryParams && (queryParams.sources === 'true')) {
       sources = true;
@@ -32,7 +32,7 @@ exports.getAll = function (query, next, cb) {
 
     if (queryParams && queryParams.include) {
       var includes = queryParams.include.split(',');
-      
+
       out_json.included = [];
 
       if (includes.indexOf('goals') > -1) {
@@ -48,14 +48,14 @@ exports.getAll = function (query, next, cb) {
         } else {
           goals = utils.getAll('goals');
         }
-         
+
         out_json.included = out_json.included.concat( goals );
       }
 
       if (includes.indexOf('targets') > -1) {
         if (queryParams.filter && queryParams.filter.id) {
           target_ids = getIdFromAttributes(data, 'target_id');
-          
+
           var target_uniques = [...new Set(target_ids)];
 
           targets = utils.getAllByIds(target_uniques, 'targets');
@@ -70,7 +70,7 @@ exports.getAll = function (query, next, cb) {
       if (includes.indexOf('indicators') > -1) {
         if (queryParams.filter && queryParams.filter.id) {
           indicator_ids = getIdFromAttributes(data, 'indicator_id');
-          
+
           var indicator_uniques = [...new Set(indicator_ids)];
 
           indicators = utils.getAllByIds(indicator_uniques, 'indicators');
@@ -114,12 +114,12 @@ exports.getAllForIndicator = function (query, next, cb) {
     } else {
       data = utils.getChildren(indicator_id, 'indicator_id', 'series');
     }
-    
+
     out_json.data = data;
 
     if (queryParams && queryParams.include) {
       var includes = queryParams.include.split(',');
-      
+
       out_json.included = [];
 
       if (includes.indexOf('goals') > -1) {
@@ -135,14 +135,14 @@ exports.getAllForIndicator = function (query, next, cb) {
         } else {
           goals = utils.getAll('goals');
         }
-         
+
         out_json.included = out_json.included.concat( goals );
       }
 
       if (includes.indexOf('targets') > -1) {
-        if (queryParams.filter && queryParams.filter.id) {          
+        if (queryParams.filter && queryParams.filter.id) {
           target_ids = getIdFromAttributes(data, 'target_id');
-          
+
           var target_uniques = [...new Set(target_ids)];
 
           targets = utils.getAllByIds(target_uniques, 'targets');
@@ -160,9 +160,9 @@ exports.getAllForIndicator = function (query, next, cb) {
           sources = true;
         }
 
-        if (queryParams.filter && queryParams.filter.id) {          
+        if (queryParams.filter && queryParams.filter.id) {
           indicator_ids = getIdFromAttributes(data, 'indicator_id');
-          
+
           var indicator_uniques = [...new Set(indicator_ids)];
 
           indicators = utils.getAllByIds(indicator_uniques, 'indicators', sources);
@@ -196,14 +196,14 @@ exports.getById = function (query, next, cb) {
     messages = [];
 
   try {
-    
+
     data = utils.getAllByIds([series_id], 'series');
-    
+
     out_json.data = data[0];
-    
+
     if (queryParams && queryParams.include) {
       var includes = queryParams.include.split(',');
-      
+
       out_json.included = [];
 
       if (includes.indexOf('goals') > -1) {
@@ -270,7 +270,7 @@ exports.getById = function (query, next, cb) {
 
       // console.log('params', params);
       // console.log('--------------------------------');
-      
+
       var features = [], valueIsString = false;
 
       var format = queryParams.f;
@@ -279,7 +279,7 @@ exports.getById = function (query, next, cb) {
 
       params.forEach(function (param) {
         var feature = {}, series_data = {}, attributes;
-        
+
         series_data = utils.getSeriesDataByRefArea(series_id, param);
         // console.log('series_data', series_data);
 
@@ -293,9 +293,9 @@ exports.getById = function (query, next, cb) {
 
           attributes = Object.assign({}, series_data, out_json.data.attributes);
           // console.log('attributes', attributes);
-          
+
           var base_atts;
-          
+
           if (format === 'esrijson' || format === 'esrijsonfc') {
             feature.attributes = Object.assign({}, attributes, _DEFAULTS.ref_area_sdg[param.refarea]);
 
@@ -316,6 +316,7 @@ exports.getById = function (query, next, cb) {
             feature.attributes.__OBJECTID = features.length + 1;
 
           } else if (format === 'geojson') {
+            feature.type = 'Feature';
             feature.properties = Object.assign({}, attributes, _DEFAULTS.ref_area_sdg[param.refarea]);
 
             if (returnGeometry) {
@@ -326,7 +327,7 @@ exports.getById = function (query, next, cb) {
             feature.id = out_json.data.id;
             feature.type = out_json.data.type;
             feature.attributes = Object.assign({}, attributes, _DEFAULTS.ref_area_sdg[param.refarea]);
-            
+
             if (returnGeometry) {
               feature.attributes = Object.assign(feature.attributes, { geometry: utils.getGeoJsonGeometryForArea(param.refarea) });
             }
@@ -358,9 +359,9 @@ exports.getById = function (query, next, cb) {
         }
 
         var iso2CodeIndex = -1, iso3CodeIndex = -1;
-        out_json.fields.forEach( (field, ind) => { 
-          if (field.name === 'iso3_code') { iso3CodeIndex = ind; } 
-          if (field.name === 'iso2_code') { iso2CodeIndex = ind; } 
+        out_json.fields.forEach( (field, ind) => {
+          if (field.name === 'iso3_code') { iso3CodeIndex = ind; }
+          if (field.name === 'iso2_code') { iso2CodeIndex = ind; }
         });
 
         if (features[0].geometry === null) {
@@ -403,7 +404,7 @@ exports.getById = function (query, next, cb) {
         } else {
           out_json.features = features;
         }
-        
+
       } else if (format === 'geojson') {
         out_json = utils.getGeoJsonTemplate();
 
@@ -416,8 +417,8 @@ exports.getById = function (query, next, cb) {
       }
     }
 
-    if (queryParams 
-        && queryParams.f !== 'geojson' 
+    if (queryParams
+        && queryParams.f !== 'geojson'
         && queryParams.f !== 'esrijson'
         && queryParams.f !== 'esrijsonfc') {
 
@@ -437,7 +438,7 @@ exports.getById = function (query, next, cb) {
 exports.describeSeries = function (query, next, cb) {
   var out_json = {},
     series_id = (query.params.series_id) ? query.params.series_id : query.params.id;
-  
+
   try {
     out_json = utils.describeSeriesDimension(series_id);
   }

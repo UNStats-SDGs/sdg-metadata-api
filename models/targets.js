@@ -61,7 +61,6 @@ exports.getAll = function (query, next, cb) {
         if (queryParams.filter && queryParams.filter.id) {
 
           var target_ids = queryParams.filter.id.split(',');
-          console.log('target_ids', target_ids);
           indicators = target_ids
             .map(function (id) {
               return utils.getChildren(id, 'target_id', 'indicators', sources);
