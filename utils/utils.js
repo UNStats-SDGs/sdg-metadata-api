@@ -1,15 +1,15 @@
 // swiped the Obj -> Array from here: https://stackoverflow.com/questions/6857468/converting-a-js-object-to-an-array
 var fs = require('fs');
 
-exports.getAll = function (type, sources) {  
+exports.getAll = function (type, sources) {
   var file = _DEFAULTS.files[type][type],
     obj,
     item,
     data;
 
   data = Object.keys(file)
-    .map(function (value) { 
-    
+    .map(function (value) {
+
       obj = file[value];
 
       item = {
@@ -29,7 +29,7 @@ exports.getAll = function (type, sources) {
         }
       } else {
         item.attributes = obj;
-      } 
+      }
 
       return item;
 
@@ -46,11 +46,11 @@ exports.getAllByIds = function (ids, type, sources) {
 
   data = ids
     .reduce(function (acc, id) {
-      
+
       obj = file[id];
-      
+
       if (obj) {
-        
+
         delete obj.id;
 
         item = {
@@ -80,17 +80,17 @@ exports.getAllByIds = function (ids, type, sources) {
 
         acc.push(item);
       } else {
-        
+
         throw {
           title: 'Resource not found',
           status: 404,
           detail: 'Unable to find ' + _DEFAULTS.model_type[type] + ' with id of ' + id
         }
-      } 
-      
+      }
+
       return acc;
 
-    },[]); 
+    },[]);
 
     return data;
 }
@@ -102,19 +102,19 @@ exports.getChildren = function (parentId, parentField, outType, sources) {
     data;
 
   data = Object.keys(file)
-    .reduce(function (acc, id) { 
-      
+    .reduce(function (acc, id) {
+
       obj = file[id];
-      
+
       if (obj && (parentId === obj[parentField]) ) {
-      
+
         delete obj.id;
 
         item = {
           id: id,
           type: _DEFAULTS.model_type[outType]
         };
-        
+
         if (outType === 'indicators') {
           if (sources) {
             item.attributes = obj;
@@ -134,14 +134,20 @@ exports.getChildren = function (parentId, parentField, outType, sources) {
       return acc;
 
     }, []);
-  
+
   return data;
 }
 
 exports.getSeriesDataByRefArea = function (series_id, param) {
   var file_path = _DEFAULTS.files.series_areas_data_path + param.refarea + '.json';
-  
-  var file = JSON.parse( fs.readFileSync( file_path ) );
+
+  var file = null;
+  try {
+    file = JSON.parse( fs.readFileSync( file_path ) );
+  }
+  catch (err) {
+    return null;
+  }
 
   if (param.year === 'latest') {
     year = 0;
@@ -156,13 +162,13 @@ exports.getSeriesDataByRefArea = function (series_id, param) {
 
   var data = file.reduce(function (acc, item) {
     // console.log('item', item);
-    if (item.SERIES === series_id 
+    if (item.SERIES === series_id
         && item.TIMEPERIOD === param.year
         && item.SEX === param.sex
         && item.AGEGROUP === param.age ) {
 
       var obj = {};
-      
+
       var value = item.OBSVALUE;
       if (value.indexOf('>') !== -1 || value.indexOf('<') !== -1) {
         // if (param.refarea === '891') {
@@ -189,6 +195,7 @@ exports.getSeriesDataByRefArea = function (series_id, param) {
       var location_type = _DEFAULTS.location_type_sdg[item.LOCATION] || 'NA';
 
       obj = {
+        series: item.SERIES,
         age_group: age_group.description,
         sex: sex.description,
         year: item.TIMEPERIOD,
@@ -205,14 +212,14 @@ exports.getSeriesDataByRefArea = function (series_id, param) {
 
       if (item.UNITMULT !== '0' && mult) {
         obj.unit_multiplier = mult.description;
-        // may not need to do any extra calcs here on 
+        // may not need to do any extra calcs here on
       }
-      
+
       acc.push(obj);
     }
     return acc;
   }, []);
-  
+
   return data[0] ||  null;
 }
 
@@ -236,7 +243,7 @@ exports.getGeoJsonGeometryForArea = function (refarea) {
 
   // if (file && file.geometry) {
   //   geoJsonGeometryCache[refarea] = file;
-  //   return file; 
+  //   return file;
   // } else {
   //   return null;
   // }
@@ -246,17 +253,17 @@ exports.getGeoJsonTemplate = function (refarea, series_atts_base, series_atts_va
  return {
     type: 'FeatureCollection',
     crs: {
-      type: 'name', 
+      type: 'name',
       properties: { name: 'EPSG:3857' }
     },
-    features: []              
+    features: []
   };
-} 
+}
 
 
 var esriJsonGeometryCache = {};
 exports.getEsriJsonGeometryForArea = function (refarea) {
-  
+
   // if (esriJsonGeometryCache[refarea]) {
   //   // console.log('adding : ' + refarea + ' geom from cache');
   //   return esriJsonGeometryCache[refarea];
@@ -276,7 +283,7 @@ exports.getEsriJsonGeometryForArea = function (refarea) {
 
   // if (file && file.geometry) {
   //   esriJsonGeometryCache[refarea] = file;
-  //   return file; 
+  //   return file;
   // } else {
   //   return null;
   // }
@@ -287,14 +294,16 @@ exports.getEsriJsonTemplate = function () {
     geometryType: 'esriGeometryPolygon',
     spatialReference: {
       wkid: 102100,
-      latestWkid: 3857                
+      latestWkid: 3857
     },
     fields: [
+      { name: 'series', alias: 'Series Identifier', type: 'esriFieldTypeString' },
       { name: 'description', alias: 'Description', type: 'esriFieldTypeString' },
       { name: 'indicator_id', alias: 'Indicator Id', type: 'esriFieldTypeString' },
       { name: 'target_id', alias: 'Target Id', type: 'esriFieldTypeString' },
       { name: 'goal_id', alias: 'Goal Id', type: 'esriFieldTypeString' },
       { name: 'sex', alias: 'Sex', type: 'esriFieldTypeString' },
+      { name: 'age_group', alias: 'Age Group', type: 'esriFieldTypeString' },
       { name: 'year', alias: 'Year', type: 'esriFieldTypeString' },
       { name: 'frequency', alias: 'Frequency', type: 'esriFieldTypeString' },
       { name: 'refarea', alias: 'Reference Area (3 Digit Code)', type: 'esriFieldTypeString' },
@@ -311,19 +320,19 @@ exports.getEsriJsonTemplate = function () {
       { name: 'nature', alias: 'Nature', type: 'esriFieldTypeString' },
       { name: 'location_type', alias: 'Location Type', type: 'esriFieldTypeString' }
     ],
-    features: []              
+    features: []
   };
 }
 
 exports.getEsriJsonFcTemplate = function () {
  return {
-  
+
  }
 }
 
 exports.describeSeriesDimension = function (series_id) {
   var file_path = _DEFAULTS.files.series_ids_data_path + series_id + '.json';
-  
+
   var file = JSON.parse( fs.readFileSync( file_path ) );
 
   var output = {
@@ -332,7 +341,7 @@ exports.describeSeriesDimension = function (series_id) {
     ages: [],
     sexes: []
   };
-  
+
   file.forEach(function (item) {
     if (item.SERIES === series_id) {
       if (output.refareas.indexOf(item.REFAREA) === -1) {

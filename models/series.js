@@ -107,6 +107,10 @@ exports.getAllForIndicator = function (query, next, cb) {
 
   try {
 
+    console.log('queryParams', queryParams);
+    // console.log('target_id', target_id);
+    console.log('indicator_id', indicator_id);
+
     if (queryParams && queryParams.filter && queryParams.filter.id) {
       var ids = queryParams.filter.id.split(',');
 

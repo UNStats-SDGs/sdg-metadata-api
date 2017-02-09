@@ -9,7 +9,7 @@ exports.getAll = function (query, next, cb) {
     messages = [];
 
   try {
-    
+
     if (queryParams && (queryParams.sources === 'true')) {
       sources = true;
     }
@@ -26,7 +26,7 @@ exports.getAll = function (query, next, cb) {
 
     if (queryParams && queryParams.include) {
       var includes = queryParams.include.split(',');
-      
+
       out_json.included = [];
 
       if (includes.indexOf('goals') > -1) {
@@ -44,7 +44,7 @@ exports.getAll = function (query, next, cb) {
         } else {
           goals = utils.getAllGoals();
         }
-         
+
         out_json.included = out_json.included.concat( goals );
       }
 
@@ -74,13 +74,13 @@ exports.getAll = function (query, next, cb) {
           var indicator_ids = queryParams.filter.id.split(',');
 
           series = indicator_ids
-            .map(function (id) { 
+            .map(function (id) {
               return utils.getChildren(id, 'indicator_id', 'series');
             })
             .reduce(function(a, b) {
               return a.concat(b);
             });
-          
+
         } else {
           series = utils.getAll('series');
         }
@@ -123,12 +123,12 @@ exports.getAllForTarget = function (query, next, cb) {
     } else {
       data = utils.getChildren(target_id, 'target_id', 'indicators', sources);
     }
-    
+
     out_json.data = data;
 
     if (queryParams && queryParams.include) {
       var includes = queryParams.include.split(',');
-      
+
       out_json.included = [];
 
       if (includes.indexOf('goals') > -1) {
@@ -138,6 +138,7 @@ exports.getAllForTarget = function (query, next, cb) {
       }
 
       if (includes.indexOf('targets') > -1) {
+
         var targets = utils.getAllByIds([target_id], 'targets');
 
         out_json.included = out_json.included.concat( targets );
@@ -178,17 +179,17 @@ exports.getById = function (query, next, cb) {
     }
 
     data = utils.getAllByIds([indicator_id], 'indicators', sources);
-    
+
     out_json.data = data[0];
 
     if (queryParams && queryParams.include) {
       var includes = queryParams.include.split(',');
-      
+
       out_json.included = [];
 
       if (includes.indexOf('goals') > -1) {
         var goal_id = indicator_id.substr(0, indicator_id.indexOf('.'));
-        
+
         var goals = utils.getAllByIds([goal_id], 'goals');
 
         out_json.included = out_json.included.concat( goals );
@@ -202,7 +203,7 @@ exports.getById = function (query, next, cb) {
         out_json.included = out_json.included.concat( targets );
       }
 
-      if (includes.indexOf('series') > -1) {        
+      if (includes.indexOf('series') > -1) {
         var series = utils.getChildren(indicator_id, 'indicator_id', 'series');
 
         out_json.included = out_json.included.concat( series );

@@ -3,10 +3,10 @@ var express = require('express'),
 
 router.get('/api/v1', function (req, res, next) {
   try {
-    
+
     var root = process.env.API_ROOT;
 
-    res.json({ 
+    res.json({
       goals: {
         collection: root + '/goals?{include,filter}',
         object: root + '/goals/{:id}?{include}'
@@ -32,10 +32,10 @@ router.get('/api/v1', function (req, res, next) {
   }
   catch (ex) {
 
-    var err = { 
-      title: 'error getting API root description', 
-      status: 500, 
-      detail: 'error getting API root description' 
+    var err = {
+      title: 'error getting API root description',
+      status: 500,
+      detail: 'error getting API root description'
     };
 
     next(err);
