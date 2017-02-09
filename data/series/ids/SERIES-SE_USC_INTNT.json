@@ -1,19 +1,19 @@
 [
-               # Replace Windows newlines with Unix  {
-               # Replace Windows newlines with Unix    "SERIES": "SE_USC_INTNT",
-               # Replace Windows newlines with Unix    "FREQ": "A",
-               # Replace Windows newlines with Unix    "REFAREA": "JAM",
-               # Replace Windows newlines with Unix    "LOCATION": "T",
-               # Replace Windows newlines with Unix    "AGEGROUP": "000_099_Y",
-               # Replace Windows newlines with Unix    "SEX": "T",
-               # Replace Windows newlines with Unix    "TIMEPERIOD": "2010",
-               # Replace Windows newlines with Unix    "UNIT": "PERCENT",
-               # Replace Windows newlines with Unix    "UNITMULT": "0",
-               # Replace Windows newlines with Unix    "OBSVALUE": "83.5365853659",
-               # Replace Windows newlines with Unix    "NATURE": "C",
-               # Replace Windows newlines with Unix    "SOURCETYPE": "NA",
-               # Replace Windows newlines with Unix    "SOURCEDETAIL": "UIS/E/ICT/2010, Questionnaire on Statistics on Information and Communication Technologies (ICT) in Education, 2010",
-               # Replace Windows newlines with Unix    "TIMEDETAIL": "2010",
-               # Replace Windows newlines with Unix    "FOOTNOTES": "Public"
-               # Replace Windows newlines with Unix  }
-               # Replace Windows newlines with Unix]
+  {
+    "SERIES": "SE_USC_INTNT",
+    "FREQ": "A",
+    "REFAREA": "JAM",
+    "LOCATION": "T",
+    "AGEGROUP": "000_099_Y",
+    "SEX": "T",
+    "TIMEPERIOD": "2010",
+    "UNIT": "PERCENT",
+    "UNITMULT": "0",
+    "OBSVALUE": "83.5365853659",
+    "NATURE": "C",
+    "SOURCETYPE": "NA",
+    "SOURCEDETAIL": "UIS/E/ICT/2010, Questionnaire on Statistics on Information and Communication Technologies (ICT) in Education, 2010",
+    "TIMEDETAIL": "2010",
+    "FOOTNOTES": "Public"
+  }
+]
