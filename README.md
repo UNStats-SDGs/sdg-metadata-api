@@ -1,6 +1,6 @@
 # GlobalSdgIndicatorsAPI
 
-An API to retrieve information and metadata on the [Sustainable Development Goals](http://www.un.org/sustainabledevelopment/sustainable-development-goals/). 
+An API to retrieve metadata on the [Sustainable Development Goals](http://www.un.org/sustainabledevelopment/sustainable-development-goals/). 
 
 This API does its best to follow the [JSONAPI Specification](http://jsonapi.org/), but is not a full implementation. It's recommended a full implementation of the JSON API Specification include a more robust approach such as [jsonapi-server](https://github.com/holidayextras/jsonapi-server)
 
@@ -36,7 +36,7 @@ The same URL pattern applies for Targets, Indicators & Series
 - [http://localhost:3000/api/v1/series](http://localhost:3000/api/v1/series)
   - Requesting a specific Series by id: [http://localhost:3000/api/v1/series/SI_POV_DAY1](http://localhost:3000/api/v1/series/SI_POV_DAY1)
 
-## Returning Indicator Source data
+## Returning Indicator Source data (deprecated-the data are now being returned by the SDG API)
 Using the `sources=true` query parameter, you can tell the API to return the detailed source information for each Indicator that is requested. If not specified, the source information will **not** be returned by default. Whenever requesting Indicator information, be sure to set `sources=true` if you wish to return the detailed metadata.
 
 For Example
@@ -81,7 +81,7 @@ For Example:
 - [http://localhost:3000/api/v1/indicators?filter[id]=1.1.1,2.a.1&include=goals](http://localhost:3000/api/v1/indicators?filter[id]=1.1.1,2.a.1&include=goals)
   - This request will return data for Indicators 1.1.1 & 2.a.1 **and** the data for each related Goal
   
-## Returning Geographic Data
+## Returning Geographic Data (deprecated-the geometry are now being returned by the koop connector and API)
 The API will allow for returning geographic data in [GeoJSON](http://geojson.org/geojson-spec.html), Esri supported JSON and JSON API (an included `geometry` property on each data element in GeoJSON format). Currently, only the `/series/{:id}` endpoint will return geographic data if the following query parameters are supplied in the request:
 
   - `refarea` **(required)** | 3 digit country code (ex: `FRA, THA, USA`)
