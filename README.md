@@ -1,13 +1,10 @@
-<<<<<<< HEAD
 # GlobalSdgIndicatorsAPI
 
 An API to retrieve information and metadata on the [Sustainable Development Goals](http://www.un.org/sustainabledevelopment/sustainable-development-goals/). 
 
-=======
 # sdg-metadata-api
 An API to retrieve metadata on the [Sustainable Development Goals](http://www.un.org/sustainabledevelopment/sustainable-development-goals/). 
 
->>>>>>> 22319ff6143b642a58b8ccb392c0720e6a3388f6
 This API does its best to follow the [JSONAPI Specification](http://jsonapi.org/), but is not a full implementation. It's recommended a full implementation of the JSON API Specification include a more robust approach such as [jsonapi-server](https://github.com/holidayextras/jsonapi-server)
 
 So let's go build something that changes the world.
@@ -87,11 +84,7 @@ For Example:
 - [http://localhost:3000/api/v1/indicators?filter[id]=1.1.1,2.a.1&include=goals](http://localhost:3000/api/v1/indicators?filter[id]=1.1.1,2.a.1&include=goals)
   - This request will return data for Indicators 1.1.1 & 2.a.1 **and** the data for each related Goal
   
-<<<<<<< HEAD
-## Returning Geographic Data
-=======
 ## Returning Geographic Data (deprecated-the geometry are now being returned by the koop connector and API)
->>>>>>> 22319ff6143b642a58b8ccb392c0720e6a3388f6
 The API will allow for returning geographic data in [GeoJSON](http://geojson.org/geojson-spec.html), Esri supported JSON and JSON API (an included `geometry` property on each data element in GeoJSON format). Currently, only the `/series/{:id}` endpoint will return geographic data if the following query parameters are supplied in the request:
 
   - `refarea` **(required)** | 3 digit country code (ex: `FRA, THA, USA`)
@@ -118,8 +111,7 @@ For Example:
   
 For help determining what values are available to you per Series, you can use the `/describe` endpoint.
 
-<<<<<<< HEAD
 For example, [http://localhost:3000/api/v1/series/EG_EGY_CLEAN/describe](http://localhost:3000/api/v1/series/EG_EGY_CLEAN/describe) will return all the available `refareas`, `time_periods` (years), `ages`, and `sexes` (sex) to use in the query parameters shown above.
-=======
+
 For example, [http://localhost:3000/api/v1/series/EG_EGY_CLEAN/describe](http://localhost:3000/api/v1/series/EG_EGY_CLEAN/describe) will return all the available `refareas`, `time_periods` (years), `ages`, and `sexes` (sex) to use in the query parameters shown above.
->>>>>>> 22319ff6143b642a58b8ccb392c0720e6a3388f6
+
