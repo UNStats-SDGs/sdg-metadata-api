@@ -1,4 +1,4 @@
-# sdg-api
+# sdg-metadata-api
 An API to retrieve information and metadata on the [Sustainable Development Goals](http://www.un.org/sustainabledevelopment/sustainable-development-goals/). 
 
 The Inter-agency Expert Group on SDG Indicators released a series of PDFs that includes metadata for each Indicator. Those PDFs can be downloaded [here](http://unstats.un.org/sdgs/iaeg-sdgs/metadata-compilation/).
