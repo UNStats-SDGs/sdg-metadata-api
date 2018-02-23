@@ -1,223 +1,95 @@
-var utils = require('../utils/utils');
+/* Copyright 2016 Esri
+ * Licensed under the Apache License, Version 2.0 (the 'License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.​ */
+ 
+var alasql = require('alasql'),
+  utils = require('../utils/utils');
 
-exports.getAll = function (query, next, cb) {
-  var out_json = { data: [] },
-    data,
-    queryParams = query.query,
-    target,
-    sources = false,
-    messages = [];
+exports.get = function (query, cb) {
+  var out_json = {},
+    data = [],
+    meta = {},
+    fields = 'indicator_id,indicator,target_id,[target],goal,goal_meta_link,goal_meta_link_page,has_metadata',
+    search_fields = ['target_id','has_metadata','goal','goal_meta_link','goal_meta_link_page','target','indicator_id','indicator','responsible_entities','definition','method','rationale_interpretation','domain','subdomain','target_linkage','exists_reported','reliability_coverage_comparability_subnational_compute','baseline_value_2015','sources_data_collection','quantifiable_derivatives','frequency','disaggregation','global_regional_monitoring_data','comments_limitations','gender_equality_issues','current_data_availability','supplementary_information','references'],
+    search_pre_operator = ' AND (';
+    base_sql = 'SELECT ',
+    opts = [ INDICATORS ];
 
   try {
-
-    if (queryParams && (queryParams.sources === 'true')) {
-      sources = true;
+    if (query.includeMetadata === 'true') {
+      fields = '*';
     }
 
-    if (queryParams && queryParams.filter && queryParams.filter.id) {
-      var ids = queryParams.filter.id.split(',');
+    base_sql += fields + ' FROM ?';
 
-      data = utils.getAllByIds(ids, 'indicators', sources);
+    if (query.ids && !query.targets) {
+      base_sql += ' WHERE indicator_id IN ('+ utils.sql_stringify(query.ids) +')';
+    } else if (query.goals) {
+      base_sql += ' WHERE goal IN ('+ utils.string_to_int(query.goals) +')';
+    } else if (query.targets) {
+      base_sql += ' WHERE target_id IN ('+ utils.sql_stringify(query.targets) +')';
     } else {
-      data = utils.getAll('indicators', sources);
+      search_pre_operator = ' WHERE (';
     }
 
-    out_json.data = data;
+    if (query.keywords) {
+      var kws = query.keywords.split(',');
+      base_sql += search_pre_operator;
+      var sf;
+      if (query.search_fields) {
+        sf = query.search_fields.split(',');
+      } else {
+        sf = search_fields;
+      }
 
-    if (queryParams && queryParams.include) {
-      var includes = queryParams.include.split(',');
-
-      out_json.included = [];
-
-      if (includes.indexOf('goals') > -1) {
-        var goals = [];
-
-        if (queryParams.filter && queryParams.filter.id) {
-          var indicator_ids = queryParams.filter.id.split(',');
-
-          var goal_ids = indicator_ids.map(function (id) { return id.substr(0, id.indexOf('.')); });
-
-          var goal_uniques = [...new Set(goal_ids)];
-
-          goals = utils.getAllByIds(goal_uniques, 'goals');
-
-        } else {
-          goals = utils.getAllGoals();
+      sf.forEach(function (f, index, arr) {
+        if (['target', 'references'].indexOf(f) !== -1) {
+          f = '[' + f + ']';
         }
-
-        out_json.included = out_json.included.concat( goals );
-      }
-
-      if (includes.indexOf('targets') > -1) {
-        var targets = [];
-
-        if (queryParams.filter && queryParams.filter.id) {
-          var indicator_ids = queryParams.filter.id.split(',');
-
-          var target_ids = indicator_ids.map(function (id) { return id.substr(0, id.lastIndexOf('.')); });
-
-          var target_uniques = [...new Set(target_ids)];
-
-          targets = utils.getAllByIds(target_uniques, 'targets');
-
-        } else {
-          targets = utils.getAll('targets');
+        base_sql += '(' + f + ' LIKE ';
+        
+        kws.forEach(function(kw, idx, kwarr){
+          base_sql += '\'%' + kw + '%\'';
+          if (idx !== kwarr.length-1) {
+            base_sql += ' OR ';
+          } else {
+            base_sql += ')';
+          }
+        });        
+        
+        if (index !== arr.length-1) {
+          base_sql += ' OR ';
         }
-
-        out_json.included = out_json.included.concat( targets );
-      }
-
-      if (includes.indexOf('series') > -1) {
-        var series = [];
-
-        if (queryParams.filter && queryParams.filter.id) {
-          var indicator_ids = queryParams.filter.id.split(',');
-
-          series = indicator_ids
-            .map(function (id) {
-              return utils.getChildren(id, 'indicator_id', 'series');
-            })
-            .reduce(function(a, b) {
-              return a.concat(b);
-            });
-
-        } else {
-          series = utils.getAll('series');
-        }
-
-        out_json.included = out_json.included.concat( series );
-      }
-
+      }, this);
+     
+      base_sql += ')';
+      
+      // base_sql = 'SEARCH / * WHERE(_ LIKE '%GEMI%') FROM ?';
+      console.log(base_sql);
     }
 
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
-
+    data = alasql(base_sql, opts);
+    
+    out_json['data'] = data;
+    out_json['meta'] = {};
   }
-  catch (ex) {
-    console.log(ex);
-
-    next(ex);
-  }
-
-  cb(null, out_json);
-}
-
-exports.getAllForTarget = function (query, next, cb) {
-  var out_json = { data: [] },
-    queryParams = query.query,
-    goal_id = query.params.id,
-    target_id = (query.params.target_id) ? query.params.target_id : query.params.id,
-    data,
-    messages = [];
-
-  try {
-    var sources = false;
-    if (queryParams && (queryParams.sources === 'true')) {
-      sources = true;
-    }
-
-    if (queryParams && queryParams.filter && queryParams.filter.id) {
-      var ids = queryParams.filter.id.split(',');
-
-      data = utils.getAllByIds(ids, 'indicators', sources);
-    } else {
-      data = utils.getChildren(target_id, 'target_id', 'indicators', sources);
-    }
-
-    out_json.data = data;
-
-    if (queryParams && queryParams.include) {
-      var includes = queryParams.include.split(',');
-
-      out_json.included = [];
-
-      if (includes.indexOf('goals') > -1) {
-        var goals = utils.getAllByIds([goal_id], 'goals');
-
-        out_json.included = out_json.included.concat( goals );
-      }
-
-      if (includes.indexOf('targets') > -1) {
-
-        var targets = utils.getAllByIds([target_id], 'targets');
-
-        out_json.included = out_json.included.concat( targets );
-      }
-
-      if (includes.indexOf('series') > -1) {
-        var series = utils.getChildren(target_id, 'target_id', 'series');
-
-        out_json.included = out_json.included.concat( series );
-      }
-
-    }
-
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
-
-  }
-  catch (ex) {
-    console.log(ex);
-
-    next(ex);
-  }
-
-  cb(null, out_json);
-}
-
-exports.getById = function (query, next, cb) {
-  var out_json = { data: [] },
-    queryParams = query.query,
-    indicator_id = (query.params.indicator_id) ? query.params.indicator_id : query.params.id,
-    data,
-    sources = false,
-    messages = [];
-
-  try {
-
-    if (queryParams && (queryParams.sources === 'true')) {
-      sources = true;
-    }
-
-    data = utils.getAllByIds([indicator_id], 'indicators', sources);
-
-    out_json.data = data[0];
-
-    if (queryParams && queryParams.include) {
-      var includes = queryParams.include.split(',');
-
-      out_json.included = [];
-
-      if (includes.indexOf('goals') > -1) {
-        var goal_id = indicator_id.substr(0, indicator_id.indexOf('.'));
-
-        var goals = utils.getAllByIds([goal_id], 'goals');
-
-        out_json.included = out_json.included.concat( goals );
-      }
-
-      if (includes.indexOf('targets') > -1) {
-        var target_id = indicator_id.substr(0, indicator_id.lastIndexOf('.'));
-
-        var targets = utils.getAllByIds([target_id], 'targets');
-
-        out_json.included = out_json.included.concat( targets );
-      }
-
-      if (includes.indexOf('series') > -1) {
-        var series = utils.getChildren(indicator_id, 'indicator_id', 'series');
-
-        out_json.included = out_json.included.concat( series );
-      }
-
-    }
-
-    out_json.meta = utils.buildMetaObject(query, 1, queryParams, messages.length > 0 ? messages : null);
-
-  }
-  catch (ex) {
-    console.log(ex);
-
-    next(ex);
+  catch (e) {
+    console.log(e);
+    out_json.errors = [];
+    out_json.errors.push({
+      status: '',
+      detail: e,
+      source: ''
+    });
   }
 
   cb(null, out_json);

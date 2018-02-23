@@ -1,51 +1,26 @@
+/* Copyright 2016 Esri
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.​ */
+
 var express = require('express'),
   router = express.Router();
 
-router.get('/api/v1', function (req, res, next) {
-  try {
-
-    var root = process.env.API_ROOT;
-
-    res.json({
-      goals: {
-        collection: root + '/goals?{include,filter}',
-        object: root + '/goals/{:id}?{include}'
-      },
-      targets: {
-        collection: root + '/targets?{include,filter}',
-        object: root + '/targets/{:id}?{include}'
-      },
-      indicators: {
-        collection: root + '/indicators?{include,filter}',
-        object: root + '/indicators/{:id}?{include}'
-      },
-      series: {
-        collection: root + '/series?{include,filter}',
-        object: root + '/series/{:id}?{include}'
-      },
-      params: {
-        include: 'related resources to include in search results',
-        filter: 'a filter applied to search results'
-      }
-    });
-
-  }
-  catch (ex) {
-
-    var err = {
-      title: 'error getting API root description',
-      status: 500,
-      detail: 'error getting API root description'
-    };
-
-    next(err);
-  }
-
+router.get('/', function (req, res) {
+  res.json( { 'meta' : 'info about the api goes here' } );
 });
 
-router.use('/api/v1/goals', require('./goals'));
-router.use('/api/v1/targets', require('./targets'));
-router.use('/api/v1/indicators', require('./indicators'));
-router.use('/api/v1/series', require('./series'));
+router.use('/goals', require('./goals'));
+router.use('/targets', require('./targets'));
+router.use('/indicators', require('./indicators'));
+router.use('/series', require('./series'));
 
 module.exports = router;

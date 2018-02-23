@@ -1,4 +1,15 @@
-require('dotenv').config();
+/* Copyright 2016 Esri
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.​ */
 
 var express = require('express'),
   app = express(),
@@ -6,74 +17,22 @@ var express = require('express'),
   cors = require('cors'),
   port = process.env.PORT || 3000;
 
-if (!process.env.API_ROOT) {
-  process.env.API_ROOT = 'http://localhost:3000';
-}
-
-app.use( cors() );
+app.use(cors());
 
 app.use( require('./controllers') );
 
-app.use(function (err, req, res, next) {
-  console.log(err);
-  
-  res.json({ errors: [ err ] });
-});
-
 app.listen(port, function () {
-  
-  _GOALS = JSON.parse( fs.readFileSync('data/goals/goals.json') );
+  console.log('loading JSON for SDGs ..');
 
-  _TARGETS = JSON.parse( fs.readFileSync('data/targets/targets.json') );
+  GOALS = {};
+  GOALS.en = JSON.parse( fs.readFileSync('data/goals-final.json') );
+  GOALS.es = JSON.parse( fs.readFileSync('data/goals-final-es.json') );
+  GOALS.fr = JSON.parse( fs.readFileSync('data/goals-final-fr.json') );
+  GOALS.ru = JSON.parse( fs.readFileSync('data/goals-final-ru.json') );
 
-  _INDICATORS = JSON.parse( fs.readFileSync('data/indicators/indicators.json') );
-
-  _SERIES = JSON.parse( fs.readFileSync('data/series/series.json') );
-
-  _UNIT_SDG = JSON.parse( fs.readFileSync('data/defaults/UNIT_SDG.json') );
-
-  _UNIT_MULT = JSON.parse( fs.readFileSync('data/defaults/UNIT_MULT.json') );
-
-  _SEX = JSON.parse( fs.readFileSync('data/defaults/SEX.json') );
-
-  _FREQ = JSON.parse( fs.readFileSync('data/defaults/FREQ.json') );
-
-  _AGE_GROUP = JSON.parse( fs.readFileSync('data/defaults/AGE_GROUP.json') );
-
-  _NATURE_SDG = JSON.parse( fs.readFileSync('data/defaults/NATURE_SDG.json') );
-
-  _SOURCE_TYPE_SDG = JSON.parse( fs.readFileSync('data/defaults/SOURCE_TYPE_SDG.json') );
-
-  _LOCATION_TYPE_SDG = JSON.parse( fs.readFileSync('data/defaults/LOCATION_TYPE_SDG.json') );
-
-  _REF_AREA_SDG = JSON.parse( fs.readFileSync('data/defaults/REF_AREA_SDG.json') );
-
-  _DEFAULTS = {
-    files: {
-      goals: _GOALS,
-      targets: _TARGETS,
-      indicators: _INDICATORS,
-      series: _SERIES,
-      series_areas_data_path: 'data/series/areas/REFAREAS-',
-      series_ids_data_path: 'data/series/ids/SERIES-',
-      geometry_path: 'data/geometry',
-    },
-    unit_sdg: _UNIT_SDG,
-    unit_mult: _UNIT_MULT,
-    sex: _SEX,
-    freq: _FREQ,
-    age_group: _AGE_GROUP,
-    nature_sdg: _NATURE_SDG,
-    source_type_sdg: _SOURCE_TYPE_SDG,
-    location_type_sdg: _LOCATION_TYPE_SDG,
-    ref_area_sdg: _REF_AREA_SDG,
-    model_type: {
-      goals: 'goal',
-      targets: 'target',
-      indicators: 'indicator',
-      series: 'series'
-    }
-  };
-  
+  TARGETS = JSON.parse( fs.readFileSync('data/targets-final.json') );
+  INDICATORS = JSON.parse( fs.readFileSync('data/indicators-final.json') );
+  SERIES = JSON.parse( fs.readFileSync('data/series-final.json') );
+   
   console.log('ready!');
 });

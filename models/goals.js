@@ -1,162 +1,77 @@
-var utils = require('../utils/utils');
+/* Copyright 2016 Esri
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.​ */
+ 
+var alasql = require('alasql'),
+  utils = require('../utils/utils');
 
-exports.getAll = function (query, next, cb) {
-  var out_json = { data: [] },
-    data,
-    queryParams = query.query,
-    goal,
-    messages = [];
+exports.get = function (query, cb) {
+  var out_json = {},
+    data = [],
+    meta = {},
+    opts,
+    accepted_locales = ['en','es','fr','ru'],
+    base_fields = 'indicator_id,indicator,target_id,[target],goal,goal_meta_link,goal_meta_link_page,has_metadata';
 
   try {
-    
-    if (queryParams && queryParams.filter && queryParams.filter.id) {
-      var ids = queryParams.filter.id.split(',');
-      
-      data = utils.getAllByIds(ids, 'goals');
+
+    // check for locale, default to en
+    if (query.locale && (accepted_locales.indexOf(query.locale) !== -1) ) {
+      opts = { data : GOALS[query.locale] };
     } else {
-      data = utils.getAll('goals');
+      opts = { data : GOALS['en'] };
     }
 
-    out_json.data = data;
-
-    if (queryParams && queryParams.include) {
-      var includes = queryParams.include.split(',');
-      
-      out_json.included = [];
-
-      if (includes.indexOf('targets') > -1) {
-        var targets = [];
-
-        if (queryParams && queryParams.filter && queryParams.filter.id) {
-          var ids = queryParams.filter.id.split(',');
-          
-          targets = ids
-            .map(function (id) {
-              return utils.getChildren(id, 'goal_id', 'targets');
-            })
-            .reduce(function (a,b) {
-              return a.concat(b);
-            }, []);
-
-        } else {
-          targets = utils.getAll('targets');
-        }
-
-        out_json.included = out_json.included.concat( targets );
-      }
-
-      if (includes.indexOf('indicators') > -1) {
-        var indicators = [];
-
-        var sources = false;
-        if (queryParams.sources && queryParams.sources === 'true') {
-          sources = true;
-        }
-
-        if (queryParams && queryParams.filter && queryParams.filter.id) {
-
-          var ids = queryParams.filter.id.split(',');
-         
-          indicators = ids.map(function(id) {
-            return utils.getChildren(id, 'goal_id', 'indicators');
-          });
-
-        } else {
-          indicators = utils.getAll('indicators');
-        }
-
-        out_json.included = out_json.included.concat( indicators );
-      }
-
-      if (includes.indexOf('series') > -1) {
-        var series = [];
-
-        if (queryParams && queryParams.filter && queryParams.filter.id) {
-
-          var ids = queryParams.filter.id.split(',');
-         
-          series = ids.map(function(id) {
-            return utils.getChildren(id, 'goal_id', 'series');
-          });
-
-        } else {
-          series = utils.getAll('series');
-        }
-
-        out_json.included = out_json.included.concat( series );
-      }
+    if (query.ids) {
+      opts.query_ids = utils.string_to_int(query.ids);
+      data = alasql('SELECT * FROM $data WHERE goal IN @($query_ids)', opts);
+    } else {
+      data = alasql('SELECT * FROM $data', opts);
     }
 
-    out_json.meta = utils.buildMetaObject(query, data.length, queryParams, messages.length > 0 ? messages : null);
-    
-  }
-  catch (ex) {
-    console.log(ex);
-
-    next(ex);
-  }
-
-  cb(null, out_json);
-}
-
-exports.getById = function (query, next, cb) {
-  var out_json = { data: [] },
-    id = query.params.id,
-    queryParams = query.query,
-    data,
-    messages = [];
-
-  try {
-
-    data = utils.getAllByIds([id], 'goals');
-       
-    out_json.data = data[0];
-
-    if (queryParams && queryParams.include) {
-      var includes = queryParams.include.split(',');
-      
-      out_json.included = [];
-
-      if (includes.indexOf('targets') > -1) {
-        var targets = utils.getChildren(id, 'goal_id', 'targets');        
-
-        if (targets.length === 0) {
-          messages.push('No Targets found for Goal' + id);
-        }
-
-        out_json.included = out_json.included.concat( targets );
-      }
-
-      if (includes.indexOf('indicators') > -1) {
-        var sources = false;
-        if (queryParams.sources && queryParams.sources === 'true') {
-          sources = true;
-        }
-
-        var indicators = utils.getChildren(id, 'goal_id', 'indicators', sources);
-
-        if (indicators.length === 0) {
-          messages.push('No Indicators found for Goal' + id);
-        }
-
-        out_json.included = out_json.included.concat( indicators );
-      }
-
-      if (includes.indexOf('series') > -1) {
-        var series = utils.getChildren(id, 'goal_id', 'series');
-        
-        out_json.included = out_json.included.concat( series );
-      }
-
+    if (query.targets === 'true' || query.indicators === 'true') {
+      opts.data = TARGETS;
+      data = data.map(function (goal) {
+        opts.goal_id = goal.goal;
+        goal.targets = alasql('SELECT * FROM $data WHERE goal=$goal_id', opts);
+        return goal;
+      },this);
     }
 
-    out_json.meta = utils.buildMetaObject(query, 1, queryParams, messages.length > 0 ? messages : null);
+    if (query.indicators === 'true') {
+      if (query.includeMetadata === 'true') {
+        base_fields = '*';
+      }
 
+      data = data.map(function (goal) {
+        goal.targets.map(function (target) {
+          target.indicators = alasql('SELECT '+ base_fields +' FROM ? WHERE target_id=?', [ INDICATORS, target.id]);
+          return target;
+        },this);
+        return goal;
+      },this);      
+    }
+
+    out_json['data'] = data;
+    out_json['meta'] = {};
   }
-  catch (ex) {
-    console.log(ex);
-
-    next(ex);
+  catch (e) {
+    console.log(e);
+    out_json.errors = [];
+    out_json.errors.push({
+      status: '',
+      detail: e,
+      source: ''
+    });
   }
 
   cb(null, out_json);

@@ -1,24 +1,24 @@
 {
-  "name": "global-sdg-indicators-api",
-  "version": "1.0.0",
-  "description": "",
+  "name": "sdg-api",
+  "version": "0.0.1",
+  "description": "An API to retrieve SDG related information",
   "main": "server.js",
+  "dependencies": {
+    "alasql": "^0.2.4",
+    "cors": "^2.7.1",
+    "express": "^4.13.3"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/UNStats-SDGs/GlobalSdgIndicatorsAPI.git"
+    "url": "git+https://github.com/Esri/sdg-api.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "Apache 2.0",
   "bugs": {
-    "url": "https://github.com/UNStats-SDGs/GlobalSdgIndicatorsAPI/issues"
+    "url": "https://github.com/Esri/sdg-api/issues"
   },
-  "homepage": "https://github.com/UNStats-SDGs/GlobalSdgIndicatorsAPI#readme",
-  "dependencies": {
-    "cors": "^2.8.1",
-    "dotenv": "^2.0.0",
-    "express": "^4.14.0"
-  }
+  "homepage": "https://github.com/Esri/sdg-api#readme"
 }
